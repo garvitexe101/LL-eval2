@@ -11,20 +11,54 @@ const toIso = (d) => {
   }
 };
 
+let memoryServer = null;
+
 async function connectDB() {
+  const isRemote = config.mongodbUri.includes('+srv') ||
+    (process.env.MONGODB_URI &&
+     !process.env.MONGODB_URI.includes('127.0.0.1') &&
+     !process.env.MONGODB_URI.includes('localhost'));
+
   try {
+    console.log(`Attempting MongoDB connection: ${config.mongodbUri.replace(/:([^:@]+)@/, ':****@')} ...`);
     await mongoose.connect(config.mongodbUri, {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 2500,
     });
-    console.log(`Connected to MongoDB at ${config.mongodbUri}`);
+    console.log('Connected to MongoDB successfully!');
+    return;
   } catch (err) {
-    console.error(`MongoDB connection error: ${err.message}`);
-    console.error('Make sure MongoDB is running locally or set MONGODB_URI in .env');
+    if (isRemote) {
+      console.error('Failed to connect to remote MongoDB URI:', err.message);
+      return;
+    }
+    console.log('Local MongoDB daemon not detected. Initializing embedded local MongoDB...');
+  }
+
+  // Fallback to MongoMemoryServer for instant, zero-install localhost testing
+  try {
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    memoryServer = await MongoMemoryServer.create({
+      instance: {
+        dbName: 'lostlink',
+      },
+    });
+    const memoryUri = memoryServer.getUri();
+    await mongoose.connect(memoryUri);
+    console.log('Embedded MongoDB engine connected successfully for localhost!');
+  } catch (memErr) {
+    console.error('Embedded MongoDB start error:', memErr.message);
   }
 }
 
 async function disconnectDB() {
-  await mongoose.disconnect();
+  try {
+    await mongoose.disconnect();
+    if (memoryServer) {
+      await memoryServer.stop();
+    }
+  } catch (err) {
+    console.error('disconnectDB error:', err.message);
+  }
 }
 
 module.exports = {

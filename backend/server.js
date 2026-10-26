@@ -63,18 +63,18 @@ app.use((err, req, res, next) => {
 });
 
 async function startServer() {
+  await connectDB();
+  if (mongoose.connection.readyState === 1) {
+    await ensureAdmin();
+    await seedDemoData();
+  }
+
   const server = app.listen(config.port, () => {
-    console.log(`LostLink backend running at http://localhost:${config.port}`);
+    console.log(`\n======================================================`);
+    console.log(`LostLink live and running at http://localhost:${config.port}`);
+    console.log(`======================================================`);
     if (config.jwtSecretIsRandom) console.log('Note: JWT_SECRET not set - sessions reset on every restart.');
     if (!config.smtp.host) console.log('Note: SMTP not configured - emails are printed to this console.');
-  });
-
-  // Attempt MongoDB connection
-  connectDB().then(async () => {
-    if (mongoose.connection.readyState === 1) {
-      await ensureAdmin();
-      await seedDemoData();
-    }
   });
 
   function shutdown() {
