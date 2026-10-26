@@ -22,7 +22,7 @@ async function connectDB() {
   try {
     console.log(`Attempting MongoDB connection: ${config.mongodbUri.replace(/:([^:@]+)@/, ':****@')} ...`);
     await mongoose.connect(config.mongodbUri, {
-      serverSelectionTimeoutMS: 2500,
+      serverSelectionTimeoutMS: 8000,
     });
     console.log('Connected to MongoDB successfully!');
     return;
