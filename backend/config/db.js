@@ -28,10 +28,12 @@ async function connectDB() {
     return;
   } catch (err) {
     if (isRemote) {
-      console.error('Failed to connect to remote MongoDB URI:', err.message);
-      return;
+      console.warn('⚠️ Could not connect to remote MongoDB Atlas cluster:', err.message);
+      console.warn('💡 Tip: Make sure your current IP address is whitelisted in MongoDB Atlas Network Access (or add 0.0.0.0/0).');
+      console.warn('Falling back to local embedded MongoDB engine so LostLink remains fully operational...');
+    } else {
+      console.log('Local MongoDB daemon not detected. Initializing embedded local MongoDB...');
     }
-    console.log('Local MongoDB daemon not detected. Initializing embedded local MongoDB...');
   }
 
   // Fallback to MongoMemoryServer for instant, zero-install localhost testing
