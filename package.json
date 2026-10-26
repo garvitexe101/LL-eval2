@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "node --watch backend/server.js"
+    "dev": "node --watch backend/server.js",
+    "db:view": "node backend/scripts/viewDb.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
