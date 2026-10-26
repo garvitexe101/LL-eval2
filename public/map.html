@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Campus Map &middot; LostLink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/shared.css">
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="/css/map.css">
+</head>
+<body data-page="map">
+<header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span><span>Lost<span>Link</span></span></a><nav><a href="index.html">Home</a><a href="browse.html">Browse</a><a class="current" href="map.html">Campus map</a><a href="how-it-works.html">How it works</a></nav><a class="profile-btn profile-nav" href="profile.html"><span class="profile-dot" id="profileInitial">&#9673;</span><span id="profileLabel">Profile</span></a></header><main class="map-page"><div class="map-intro">
+<p class="eyebrow"><span></span> CHITKARA UNIVERSITY &middot; RAJPURA CAMPUS</p>
+<h1>Find it where<br>it happened.</h1>
+<p>Select a familiar campus zone to focus the reports below. Every active report is shown by default.</p>
+</div>
+<section class="live-map-shell"><div class="map-toolbar"><div><b>Chitkara University Live Campus Map</b><span>Real campus buildings & aerial imagery &middot; Rajpura Campus</span></div><div class="map-view-actions"><button type="button" id="btnSatellite" class="map-view-btn active">ðŸ›°ï¸ Satellite View</button><button type="button" id="btnStreets" class="map-view-btn">ðŸ—ºï¸ Campus Map</button><button type="button" id="btnLocateMe" class="map-view-btn locate-btn">ðŸ“ Where am I?</button></div></div><div id="liveCampusMap"></div><div class="map-legend"><span><i class="zone-dot"></i>Campus building zone (click badge to filter reports below)</span></div></section><section class="zone-results horizontal-results"><div>
+<p class="eyebrow"><span></span> LOCATION ACTIVITY</p>
+<h2 id="zoneTitle">All active campus reports</h2>
+</div>
+<button id="showAllZones" class="show-all-zones">Show all</button></section><div id="zoneItems" class="map-item-list horizontal-item-list"></div>
+<p class="map-note">Choose any report to open its details and secure validation form. Campus zones protect personal location privacy.</p></main><footer><span>&copy; 2026 LostLink &middot; Chitkara University</span><span>Rajpura campus &middot; zone map</span></footer><div id="appModal"></div>
+<div id="toast"></div>
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/shared.js"></script><script src="/js/map.js"></script>
+</body>
+</html>

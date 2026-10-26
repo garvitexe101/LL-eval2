@@ -1,0 +1,116 @@
+/* Administrator item overview and claim review responsiveness. */
+.admin-item-page {
+  max-width:980px;
+  margin:28px auto
+}
+.admin-item-overview {
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:27px;
+  background:#fff;
+  border:1px solid #e3e8e2;
+  border-radius:10px
+}
+.admin-item-overview .moderation-icon {
+  width:58px;
+  height:58px;
+  font-size:29px
+}
+.admin-item-overview h1 {
+  font:700 33px "Playfair Display";
+  margin:0 0 5px
+}
+.admin-item-overview p:not(.eyebrow) {
+  margin:0;
+  color:#71808b;
+  font-size:12px
+}
+.admin-item-overview .visibility {
+  margin-left:auto
+}
+.admin-claims {
+  margin-top:20px;
+  padding:29px;
+  background:#fff;
+  border:1px solid #e3e8e2;
+  border-radius:10px
+}
+.admin-claims h2 {
+  font:700 28px "Playfair Display";
+  margin:0 0 6px
+}
+.admin-intro {
+  font-size:12px;
+  color:#71808b;
+  margin:0 0 20px
+}
+.admin-claim-card {
+  border-top:1px solid #e9ede8;
+  padding:19px 0;
+  display:grid;
+  grid-template-columns:180px 1fr auto;
+  gap:19px;
+  align-items:center
+}
+.admin-claim-card h3 {
+  font-size:13px;
+  margin:7px 0 2px
+}
+.admin-claim-card p {
+  font-size:10px;
+  color:#71808b;
+  margin:0
+}
+.claim-number {
+  font-size:10px;
+  color:#ec7859;
+  font-weight:700
+}
+.claim-answer-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px
+}
+.claim-answer-grid span {
+  background:#f6f8f5;
+  padding:8px;
+  border-radius:4px;
+  font-size:11px;
+  color:#46564f
+}
+.claim-answer-grid small {
+  display:block;
+  color:#849089;
+  font-size:8px;
+  letter-spacing:.6px;
+  margin-bottom:3px
+}
+.claim-actions {
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  min-width:103px
+}
+.accepted-alert {
+  background:#e1f1e5!important;
+  color:#397651!important
+}
+@media(max-width:700px) {
+  .admin-item-overview {
+    align-items:flex-start;
+    flex-wrap:wrap
+  }
+.admin-item-overview .visibility {
+    margin-left:0
+  }
+.admin-claim-card {
+    grid-template-columns:1fr
+  }
+.claim-actions {
+    flex-direction:row
+  }
+.claim-answer-grid {
+    grid-template-columns:1fr 1fr
+  }
+}

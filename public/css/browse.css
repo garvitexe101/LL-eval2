@@ -1,0 +1,32 @@
+/* Browse directory responsive layout and filters. */
+@media(max-width:800px) {
+  .home-browse-callout {
+    align-items:start;
+    flex-direction:column
+  }
+.category-tabs {
+    grid-template-columns:repeat(3,1fr)
+  }
+.browse-grid {
+    grid-template-columns:repeat(2,1fr)
+  }
+}
+@media(max-width:500px) {
+  .browse-hero {
+    padding:50px 23px
+  }
+.browse-hero h1 {
+    font-size:39px
+  }
+.category-heading,.results-title {
+    align-items:start;
+    gap:15px;
+    flex-direction:column
+  }
+.category-tabs {
+    grid-template-columns:repeat(2,1fr)
+  }
+.home-browse-callout {
+    padding:48px 23px
+  }
+}

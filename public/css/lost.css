@@ -1,0 +1,40 @@
+/* Lost-item form select and time controls. */
+.report-form-wrap select,.modern-select {
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  background-color:#fbfcfa!important;
+  background-image:linear-gradient(45deg,transparent 50%,#536278 50%),linear-gradient(135deg,#536278 50%,transparent 50%)!important;
+  background-position:calc(100% - 16px) 52%,calc(100% - 11px) 52%!important;
+  background-size:5px 5px,5px 5px!important;
+  background-repeat:no-repeat!important;
+  padding-right:34px!important;
+  border-radius:7px!important;
+  transition:border-color .2s,box-shadow .2s!important
+}
+.report-form-wrap select:hover,.modern-select:hover {
+  border-color:#aebbb0!important
+}
+.report-form-wrap select:focus,.modern-select:focus {
+  border-color:#f18162!important;
+  box-shadow:0 0 0 3px #f1816220!important
+}
+.report-form-wrap option {
+  padding:11px;
+  background:#fff;
+  color:#17213a;
+  font-family:"DM Sans",sans-serif
+}
+.time-combo {
+  display:flex;
+  gap:8px;
+  width:100%
+}
+.time-combo input {
+  min-width:0;
+  flex:1
+}
+.time-combo select {
+  width:82px!important;
+  flex:0 0 82px;
+  padding-left:11px!important
+}

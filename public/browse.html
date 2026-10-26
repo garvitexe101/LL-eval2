@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Browse reports &middot; LostLink</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/shared.css">
+<link rel="stylesheet" href="/css/browse.css">
+</head>
+<body data-page="browse">
+<header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span><span>Lost<span>Link</span></span></a><nav><a href="index.html">Home</a><a class="current" href="browse.html">Browse</a><a href="map.html">Campus map</a><a href="how-it-works.html">How it works</a></nav><a class="profile-btn profile-nav" href="profile.html"><span class="profile-dot" id="profileInitial">&#9673;</span><span id="profileLabel">Profile</span></a></header><main class="browse-page"><section class="browse-hero"><p class="eyebrow"><span></span> ITEM DIRECTORY</p>
+<h1>What has been<br><em>reported?</em>
+</h1>
+<p>Browse active lost and found reports across Chitkara University. Choose a category or search a campus location.</p>
+<div class="search-wrap">
+<span>&#9001;</span><input id="searchInput" placeholder="Search item, colour or location..."><button id="searchButton">Search</button>
+</div></section><section class="category-section"><div class="category-heading">
+<div>
+<p class="eyebrow"><span></span> BROWSE BY CATEGORY</p>
+<h2>Find your category</h2>
+</div>
+<span id="reportCount">Active reports</span>
+</div>
+<div class="category-tabs">
+<button class="category-tab active" data-filter="all"><b>&#9673;</b><span>All items</span><small id="count-all">0</small></button><button class="category-tab" data-filter="Electronics"><b>&#9686;&#9687;</b><span>Electronics</span><small id="count-electronics">0</small></button><button class="category-tab" data-filter="ID / Card"><b>&#9636;</b><span>ID &amp; Cards</span><small id="count-id">0</small></button><button class="category-tab" data-filter="Bags"><b>&#9635;</b><span>Bags</span><small id="count-bags">0</small></button><button class="category-tab" data-filter="Keys"><b>&#9919;</b><span>Keys</span><small id="count-keys">0</small></button><button class="category-tab" data-filter="Other"><b>&#10022;</b><span>Other</span><small id="count-other">0</small></button>
+</div></section><section class="browse-results"><div class="results-title">
+<h2 id="resultsHeading">All active reports</h2>
+<div>
+<button class="type-filter active" data-type="all">All</button><button class="type-filter" data-type="found">Found</button><button class="type-filter" data-type="lost">Lost</button>
+</div>
+</div>
+<div id="itemGrid" class="item-grid browse-grid"></div>
+<p class="empty-state" id="emptyState" hidden>No reports match those filters. Try another category.</p></section></main><footer><span>&copy; 2026 LostLink &middot; Chitkara University</span><span>Open a report to view its secure validation form</span></footer><div id="appModal"></div>
+<div id="toast"></div>
+<script src="/js/shared.js"></script><script src="/js/browse.js"></script>
+</body>
+</html>

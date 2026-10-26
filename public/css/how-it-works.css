@@ -1,0 +1,46 @@
+/* How-it-works responsive steps, policy, and contact sections. */
+@media(max-width:700px) {
+  .how-hero {
+    padding:57px 25px
+  }
+.how-hero h1 {
+    font-size:40px
+  }
+.steps-wide article {
+    grid-template-columns:60px 1fr;
+    gap:15px
+  }
+.steps-wide span {
+    font-size:29px
+  }
+.reliability,.contact-section {
+    flex-direction:column;
+    grid-template-columns:1fr;
+    gap:30px;
+    padding:50px 25px
+  }
+.item-detail {
+    grid-template-columns:1fr
+  }
+.detail-art {
+    min-height:210px
+  }
+.detail-main {
+    padding:29px
+  }
+.detail-grid {
+    grid-template-columns:1fr 1fr
+  }
+.claim-box {
+    padding:25px
+  }
+.claim-box form {
+    grid-template-columns:1fr
+  }
+.claim-box form .btn {
+    grid-column:auto
+  }
+.profile-card {
+    padding:35px 22px
+  }
+}

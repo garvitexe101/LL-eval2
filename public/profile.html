@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Profile &middot; LostLink</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="/css/shared.css">
+    <link rel="stylesheet" href="/css/profile.css">
+</head>
+
+<body data-page="profile">
+
+    <header class="topbar">
+
+        <a class="brand" href="index.html">
+            <span class="brand-mark">L</span>
+            <span>
+                Lost<span>Link</span>
+            </span>
+        </a>
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="index.html#browse">Browse</a>
+            <a href="map.html">Campus map</a>
+            <a href="how-it-works.html">How it works</a>
+        </nav>
+
+        <a class="profile-btn profile-nav" href="profile.html">
+            <span class="profile-dot" id="profileInitial">&#9673;</span>
+            <span id="profileLabel">Profile</span>
+        </a>
+
+    </header>
+
+
+    <main
+        class="profile-page"
+        id="profilePage"
+    ></main>
+
+
+    <footer>
+        <span>
+            &copy; 2026 LostLink &middot; Chitkara University
+        </span>
+
+        <span>
+            Your LostLink account
+        </span>
+    </footer>
+
+
+    <div id="appModal"></div>
+
+    <div id="toast"></div>
+
+
+    <script src="/js/shared.js"></script>
+    <script src="/js/profile.js"></script>
+
+</body>
+</html>
