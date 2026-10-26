@@ -6,25 +6,92 @@
 <title>Campus Map &middot; LostLink</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/shared.css">
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="/css/map.css">
 </head>
 <body data-page="map">
-<header class="topbar"><a class="brand" href="index.html"><span class="brand-mark">L</span><span>Lost<span>Link</span></span></a><nav><a href="index.html">Home</a><a href="browse.html">Browse</a><a class="current" href="map.html">Campus map</a><a href="how-it-works.html">How it works</a></nav><a class="profile-btn profile-nav" href="profile.html"><span class="profile-dot" id="profileInitial">&#9673;</span><span id="profileLabel">Profile</span></a></header><main class="map-page"><div class="map-intro">
-<p class="eyebrow"><span></span> CHITKARA UNIVERSITY &middot; RAJPURA CAMPUS</p>
-<h1>Find it where<br>it happened.</h1>
-<p>Select a familiar campus zone to focus the reports below. Every active report is shown by default.</p>
-</div>
-<section class="live-map-shell"><div class="map-toolbar"><div><b>Chitkara University Live Campus Map</b><span>Real campus buildings & aerial imagery &middot; Rajpura Campus</span></div><div class="map-view-actions"><button type="button" id="btnSatellite" class="map-view-btn active">ðŸ›°ï¸ Satellite View</button><button type="button" id="btnStreets" class="map-view-btn">ðŸ—ºï¸ Campus Map</button><button type="button" id="btnLocateMe" class="map-view-btn locate-btn">ðŸ“ Where am I?</button></div></div><div id="liveCampusMap"></div><div class="map-legend"><span><i class="zone-dot"></i>Campus building zone (click badge to filter reports below)</span></div></section><section class="zone-results horizontal-results"><div>
-<p class="eyebrow"><span></span> LOCATION ACTIVITY</p>
-<h2 id="zoneTitle">All active campus reports</h2>
-</div>
-<button id="showAllZones" class="show-all-zones">Show all</button></section><div id="zoneItems" class="map-item-list horizontal-item-list"></div>
-<p class="map-note">Choose any report to open its details and secure validation form. Campus zones protect personal location privacy.</p></main><footer><span>&copy; 2026 LostLink &middot; Chitkara University</span><span>Rajpura campus &middot; zone map</span></footer><div id="appModal"></div>
+<header class="topbar">
+  <a class="brand" href="index.html"><span class="brand-mark">L</span><span>Lost<span>Link</span></span></a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="browse.html">Browse</a>
+    <a class="current" href="map.html">Campus map</a>
+    <a href="how-it-works.html">How it works</a>
+  </nav>
+  <a class="profile-btn profile-nav" href="profile.html">
+    <span class="profile-dot" id="profileInitial">&#9673;</span>
+    <span id="profileLabel">Profile</span>
+  </a>
+</header>
+
+<main class="map-page">
+  <div class="map-intro">
+    <p class="eyebrow"><span></span> CHITKARA UNIVERSITY &middot; RAJPURA CAMPUS</p>
+    <h1>Find it where<br>it happened.</h1>
+    <p>Select a familiar campus zone to focus the reports below. Every active report is shown by default.</p>
+  </div>
+
+  <section class="live-map-shell">
+    <div class="map-toolbar">
+      <div class="map-toolbar-info">
+        <div class="toolbar-title-row">
+          <b>Chitkara University Live Campus Map</b>
+          <span class="live-badge"><i class="radar-ping"></i> Real-time Zone Tracker</span>
+        </div>
+        <span>High-resolution satellite imagery &amp; campus building zones &middot; Rajpura Campus</span>
+      </div>
+      <div class="map-view-actions">
+        <button type="button" id="btnSatellite" class="map-view-btn active" title="Switch to Satellite Photography">
+          <svg class="view-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+          <span>Satellite View</span>
+        </button>
+        <button type="button" id="btnStreets" class="map-view-btn" title="Switch to Campus Building & Street Map">
+          <svg class="view-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+          <span>Campus Map</span>
+        </button>
+        <button type="button" id="btnLocateMe" class="map-view-btn locate-btn" title="Locate your current position">
+          <svg class="view-btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path><circle cx="12" cy="12" r="8"></circle></svg>
+          <span id="locateBtnLabel">Where am I?</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="liveCampusMap"></div>
+
+    <div class="map-legend">
+      <div class="legend-indicators">
+        <span class="legend-item"><i class="legend-dot active-beacon"></i> <strong>Active Reports</strong> (Beacon pulsing)</span>
+        <span class="legend-item"><i class="legend-dot idle-beacon"></i> <strong>All Clear Zone</strong></span>
+      </div>
+      <span class="legend-tip">💡 Click or hover any building pin to inspect items &amp; filter reports</span>
+    </div>
+  </section>
+
+  <section class="zone-results horizontal-results">
+    <div>
+      <p class="eyebrow"><span></span> LOCATION ACTIVITY</p>
+      <h2 id="zoneTitle">All active campus reports</h2>
+    </div>
+    <button id="showAllZones" class="show-all-zones">Show all campus reports</button>
+  </section>
+
+  <div id="zoneItems" class="map-item-list horizontal-item-list"></div>
+
+  <p class="map-note">Choose any report to open its details and secure validation form. Campus zones protect personal location privacy.</p>
+</main>
+
+<footer>
+  <span>&copy; 2026 LostLink &middot; Chitkara University</span>
+  <span>Rajpura campus &middot; zone map</span>
+</footer>
+
+<div id="appModal"></div>
 <div id="toast"></div>
+
 <script src="/vendor/leaflet/leaflet.js"></script>
-<script src="/js/shared.js"></script><script src="/js/map.js"></script>
+<script src="/js/shared.js"></script>
+<script src="/js/map.js"></script>
 </body>
 </html>

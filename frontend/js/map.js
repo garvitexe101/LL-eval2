@@ -1,4 +1,7 @@
-/* Live campus map (Satellite & Street Views) and zone report list. */
+/* ==========================================================================
+   LOSTLINK LIVE CAMPUS MAP - INTERACTIVE ZONE CONTROLLER
+   ========================================================================== */
+
 (async function () {
   if (document.body.dataset.page !== 'map') return;
 
@@ -9,19 +12,111 @@
     toast(e.message);
     return;
   }
+
   let allItems = [];
   try {
-    allItems = (await api('/items')).items;
-  } catch (e) { /* list stays empty */ }
-
-  function show(zone) {
-    const list = allItems.filter(i => !zone || i.zone === zone);
-    $('#zoneTitle').textContent = zone ? `${zone} reports` : 'All active campus reports';
-    $('#zoneItems').innerHTML = list.map(i => `<a class="map-report-card" href="item.html?id=${i.id}"><span class="map-report-icon ${esc(i.type)}">${icon(i.category)}</span><span><b>${esc(i.name)}</b><small>⌖ ${esc(i.zone)}</small></span><strong>→</strong></a>`).join('') || '<p class="empty-map-state">No active reports in this zone.</p>';
+    const res = await api('/items');
+    allItems = res.items || [];
+  } catch (e) {
+    /* empty */
   }
 
-  const showAll = $('#showAllZones');
-  if (showAll) showAll.onclick = () => show();
+  let activeZone = null;
+  const zoneEntries = [];
+
+  // Filter and render reports below the map
+  function show(zoneName) {
+    const list = allItems.filter(i => !zoneName || i.zone === zoneName);
+    const titleEl = $('#zoneTitle');
+    if (titleEl) {
+      if (zoneName) {
+        titleEl.textContent = `📍 ${zoneName} (${list.length} ${list.length === 1 ? 'active report' : 'active reports'})`;
+      } else {
+        titleEl.textContent = `All active campus reports (${allItems.length})`;
+      }
+    }
+
+    const itemsContainer = $('#zoneItems');
+    if (itemsContainer) {
+      if (list.length === 0) {
+        itemsContainer.innerHTML = '<p class="empty-map-state">✨ No active reports in this building right now. Everything is clear!</p>';
+      } else {
+        itemsContainer.innerHTML = list.map(i => `
+          <a class="map-report-card" href="item.html?id=${i.id}" title="Click to view report details">
+            <span class="map-report-icon ${esc(i.type)}">${icon(i.category)}</span>
+            <span>
+              <b>${esc(i.name)}</b>
+              <small>⌖ ${esc(i.zone)} &middot; ${i.type === 'lost' ? '🔴 Lost' : '🟢 Found'}</small>
+            </span>
+            <strong>&rarr;</strong>
+          </a>
+        `).join('');
+      }
+    }
+  }
+
+  // Select/highlight a zone across pins, circles, and reports
+  function selectZone(zoneName, panMap = true) {
+    activeZone = zoneName;
+    show(zoneName);
+
+    zoneEntries.forEach(entry => {
+      const isMatch = zoneName && entry.name.toLowerCase() === zoneName.toLowerCase();
+      const total = entry.zoneData.lost + entry.zoneData.found;
+
+      // Update Pin element style
+      if (entry.pinElement) {
+        if (isMatch) {
+          entry.pinElement.classList.add('is-selected-pin');
+        } else {
+          entry.pinElement.classList.remove('is-selected-pin');
+        }
+      }
+
+      // Update Ground Circle style
+      if (entry.circle) {
+        if (isMatch) {
+          entry.circle.setStyle({
+            weight: 3.5,
+            fillOpacity: total > 0 ? 0.38 : 0.22,
+            dashArray: null,
+            color: total > 0 ? '#ea580c' : '#0284c7',
+            fillColor: total > 0 ? '#f97316' : '#38bdf8'
+          });
+        } else {
+          entry.circle.setStyle({
+            weight: 2,
+            fillOpacity: total > 0 ? 0.22 : 0.08,
+            dashArray: total > 0 ? '6, 6' : '3, 5',
+            color: total > 0 ? (entry.zoneData.lost > 0 ? '#f97316' : '#10b981') : '#64748b',
+            fillColor: total > 0 ? (entry.zoneData.lost > 0 ? '#ea580c' : '#059669') : '#334155'
+          });
+        }
+      }
+
+      if (isMatch && panMap && map) {
+        map.panTo([entry.zoneData.lat, entry.zoneData.lng], {
+          animate: true,
+          duration: 0.55
+        });
+      }
+    });
+  }
+
+  // Expose globally for interactive popup buttons
+  window.selectCampusZone = function (zoneName) {
+    selectZone(zoneName, true);
+    const resultsEl = document.getElementById('zoneTitle');
+    if (resultsEl) {
+      resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+
+  const showAllBtn = $('#showAllZones');
+  if (showAllBtn) {
+    showAllBtn.onclick = () => selectZone(null, false);
+  }
+
   show();
 
   const el = $('#liveCampusMap');
@@ -45,84 +140,79 @@
     maxZoom: 19
   });
 
-  // Layer 1: High-resolution real satellite photography of Chitkara University campus
+  // Layer 1: High-resolution satellite photography
   const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
     attribution: 'Tiles &copy; Esri &mdash; High-Resolution Aerial View'
   });
 
-  // Layer 2: Detailed Campus Street Map (OpenStreetMap Humanitarian - colorful buildings, walkways & roads with NO watermark)
+  // Layer 2: Detailed Campus Street Map
   const streets = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
     maxZoom: 19,
     subdomains: 'abc',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  });
-
-  // Layer 3: Standard OpenStreetMap
-  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
     attribution: '&copy; OpenStreetMap contributors'
   });
 
-  // Start with Satellite view as default base layer
+  // Start with Satellite as default
   satellite.addTo(map);
 
-  // Layer switcher control (top-right)
-  const baseLayers = {
-    '🛰️ Satellite (Actual Campus)': satellite,
-    '🗺️ Campus Map (Streets & Buildings)': streets,
-    '🌐 OpenStreetMap Standard': osm
-  };
-  L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
-
-  // Link UI toolbar buttons to switch layers
+  // Link UI toolbar buttons
   const btnSat = $('#btnSatellite');
   const btnStr = $('#btnStreets');
   if (btnSat && btnStr) {
     btnSat.onclick = () => {
       map.removeLayer(streets);
-      map.removeLayer(osm);
       satellite.addTo(map);
       btnSat.classList.add('active');
       btnStr.classList.remove('active');
     };
     btnStr.onclick = () => {
       map.removeLayer(satellite);
-      map.removeLayer(osm);
       streets.addTo(map);
       btnStr.classList.add('active');
       btnSat.classList.remove('active');
     };
   }
 
-  // Locate me button
+  // Locate Me button
   const btnLocate = $('#btnLocateMe');
+  const locateLabel = $('#locateBtnLabel');
   let myLocMarker = null;
+
   if (btnLocate) {
     btnLocate.onclick = () => {
       if (!navigator.geolocation) {
         toast('Geolocation is not supported by your browser.');
         return;
       }
-      btnLocate.textContent = '📍 Locating...';
+      if (locateLabel) locateLabel.textContent = 'Locating...';
+
       navigator.geolocation.getCurrentPosition(
         pos => {
-          btnLocate.textContent = '📍 Where am I?';
+          if (locateLabel) locateLabel.textContent = 'Where am I?';
           const { latitude, longitude, accuracy } = pos.coords;
           if (myLocMarker) map.removeLayer(myLocMarker);
+
           myLocMarker = L.circleMarker([latitude, longitude], {
-            radius: 9,
-            fillColor: '#3b82f6',
-            color: '#fff',
+            radius: 10,
+            fillColor: '#38bdf8',
+            color: '#ffffff',
             weight: 3,
             opacity: 1,
-            fillOpacity: 0.9
+            fillOpacity: 0.95
           }).addTo(map);
-          myLocMarker.bindPopup(`<b>You are here!</b><br><small>Accuracy within ${Math.round(accuracy)}m</small>`).openPopup();
-          map.setView([latitude, longitude], 18);
+
+          myLocMarker.bindPopup(`
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;padding:6px;">
+              <b style="font-size:13px;color:#0f172a;">📍 You are here!</b>
+              <p style="font-size:11px;color:#64748b;margin:3px 0 0;">Estimated within ${Math.round(accuracy)} meters</p>
+            </div>
+          `).openPopup();
+
+          map.setView([latitude, longitude], 18, { animate: true });
         },
         () => {
-          btnLocate.textContent = '📍 Where am I?';
+          if (locateLabel) locateLabel.textContent = 'Where am I?';
           toast('Could not detect location. Please allow location permissions in your browser.');
         },
         { enableHighAccuracy: true, timeout: 8000 }
@@ -144,62 +234,142 @@
     'Explotorium': '🚀'
   };
 
-  // Add interactive building zones to map
+  // Render enhanced interactive building pins
   data.zones.forEach(z => {
     const total = z.lost + z.found;
     const iconSym = zoneIcons[z.name] || '📍';
+    const hasItems = total > 0;
+    const typeClass = hasItems ? (z.lost > 0 ? 'type-lost' : 'type-found') : 'is-empty';
 
-    // Zone highlight circle on campus ground
-    L.circle([z.lat, z.lng], {
-      radius: 35,
-      color: total > 0 ? (z.lost > 0 ? '#ea580c' : '#16a34a') : '#3b82f6',
-      fillColor: total > 0 ? (z.lost > 0 ? '#f97316' : '#22c55e') : '#60a5fa',
-      fillOpacity: 0.22,
-      weight: 2
+    // 1. Soft Campus Architectural Ground Circle
+    const circle = L.circle([z.lat, z.lng], {
+      radius: 36,
+      color: hasItems ? (z.lost > 0 ? '#f97316' : '#10b981') : '#64748b',
+      fillColor: hasItems ? (z.lost > 0 ? '#ea580c' : '#059669') : '#334155',
+      fillOpacity: hasItems ? 0.22 : 0.08,
+      weight: 2,
+      dashArray: hasItems ? '6, 6' : '3, 5'
     }).addTo(map);
 
-    // Zone marker badge with total count
+    // 2. Custom HTML Floating Pin with needle & radar pulse
+    const pinId = 'pin-' + z.name.replace(/\s+/g, '-').toLowerCase();
+    const pinHtml = `
+      <div id="${pinId}" class="campus-pin ${typeClass}" data-zone="${esc(z.name)}">
+        ${hasItems ? '<div class="pin-radar-ring"></div>' : ''}
+        <div class="pin-body">
+          <span class="pin-icon">${iconSym}</span>
+          <span class="pin-name">${esc(z.name)}</span>
+          <span class="pin-badge">${total}</span>
+        </div>
+      </div>
+    `;
+
     const marker = L.marker([z.lat, z.lng], {
       title: z.name,
       icon: L.divIcon({
-        className: 'custom-campus-marker',
-        html: `<div class="campus-badge ${total > 0 ? 'has-items' : ''}">
-                 <span class="badge-icon">${iconSym}</span>
-                 <span class="badge-name">${esc(z.name)}</span>
-                 <span class="badge-count">${total}</span>
-               </div>`,
-        iconSize: [120, 36],
-        iconAnchor: [60, 18]
+        className: 'campus-pin-anchor',
+        html: pinHtml,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0]
       })
     }).addTo(map);
 
-    const links = z.items.map(i => `<a class="popup-item-link ${i.type}" href="item.html?id=${i.id}">${i.type === 'lost' ? '🔴 Lost' : '🟢 Found'}: <b>${esc(i.name)}</b></a>`).join('');
-    
+    // 3. Hover Tooltip
+    marker.bindTooltip(`
+      <div class="pin-tooltip-content">
+        <b>${iconSym} ${esc(z.name)}</b>
+        <span>${hasItems ? `🔥 ${total} active ${total === 1 ? 'report' : 'reports'}` : '✨ All Clear &middot; No reports'}</span>
+      </div>
+    `, {
+      direction: 'top',
+      offset: [0, -42],
+      className: 'custom-pin-tooltip',
+      opacity: 1
+    });
+
+    // 4. Interactive Click Popup
+    const itemsHtml = z.items.map(i => `
+      <a class="popup-report-link" href="item.html?id=${i.id}">
+        <span>${i.type === 'lost' ? '🔴' : '🟢'}</span>
+        <b>${esc(i.name)}</b>
+      </a>
+    `).join('');
+
     marker.bindPopup(`
-      <div class="campus-popup">
-        <div class="popup-header">
-          <span class="popup-icon">${iconSym}</span>
-          <div>
-            <b>${esc(z.name)}</b>
-            <small>Chitkara University Campus</small>
+      <div class="campus-popup-card">
+        <div class="popup-head">
+          <span class="popup-icon-badge">${iconSym}</span>
+          <div class="popup-title-box">
+            <h3>${esc(z.name)}</h3>
+            <span class="popup-subtitle">Chitkara University &middot; Rajpura Campus</span>
           </div>
         </div>
-        <div class="popup-stats">
-          <span class="stat-found">🟢 ${z.found} Found</span>
-          <span class="stat-lost">🔴 ${z.lost} Lost</span>
-        </div>
-        <div class="popup-items">${links || '<p class="no-items">No active reports in this zone right now.</p>'}</div>
-      </div>
-    `);
 
+        <div class="popup-metrics-bar">
+          ${hasItems
+            ? `<span class="metric-pill lost-pill">🔴 ${z.lost} Lost</span>
+               <span class="metric-pill found-pill">🟢 ${z.found} Found</span>`
+            : `<span class="metric-pill clear-pill">✨ All Clear &middot; No Reports</span>`
+          }
+        </div>
+
+        <div class="popup-item-scroller">
+          ${itemsHtml || '<p class="popup-empty-msg">No active lost or found items reported in this building.</p>'}
+        </div>
+
+        <button type="button" class="popup-filter-btn" onclick="window.selectCampusZone('${esc(z.name)}')">
+          <span>Focus reports below &darr;</span>
+        </button>
+      </div>
+    `, {
+      offset: [0, -32],
+      maxWidth: 290
+    });
+
+    // Keep entry reference for dynamic styling
+    zoneEntries.push({
+      name: z.name,
+      zoneData: z,
+      marker,
+      circle,
+      pinId
+    });
+
+    // Wire up events
     marker.on('click', () => {
-      show(z.name);
-      map.setView([z.lat, z.lng], 18, { animate: true });
+      selectZone(z.name, false);
+    });
+
+    marker.on('mouseover', () => {
+      if (activeZone !== z.name) {
+        circle.setStyle({
+          weight: 3,
+          fillOpacity: hasItems ? 0.35 : 0.18,
+          dashArray: null
+        });
+      }
+    });
+
+    marker.on('mouseout', () => {
+      if (activeZone !== z.name) {
+        circle.setStyle({
+          weight: 2,
+          fillOpacity: hasItems ? 0.22 : 0.08,
+          dashArray: hasItems ? '6, 6' : '3, 5'
+        });
+      }
     });
   });
 
-  // Force map re-layout after rendering to prevent any gray-tile misalignment
+  // Attach DOM pin references once Leaflet injects them
+  setTimeout(() => {
+    zoneEntries.forEach(entry => {
+      entry.pinElement = document.getElementById(entry.pinId);
+    });
+  }, 150);
+
+  // Re-calculate map dimensions
   setTimeout(() => {
     map.invalidateSize();
-  }, 300);
+  }, 350);
 })();
