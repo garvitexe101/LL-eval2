@@ -1,19 +1,13 @@
-const express = require('express');
-const { Item, Claim, User, toIso, Match } = require('../db');
-const config = require('../config');
+const { Item, Claim, User, Match, toIso } = require('../models');
+const config = require('../config/config');
 const { HttpError, str } = require('../http');
-const { requireAuth, requireAdmin } = require('../middleware');
 const { publicItem, getItem } = require('../itemModel');
 const { notifyUser } = require('../notify');
 
 const COLLECTION_NOTE =
   'Please carry your valid Student ID while visiting the Security Office to collect the item.';
 
-/* ---------- Student-facing: submit and list own claims ---------- */
-
-const claimsRouter = express.Router();
-
-claimsRouter.post('/items/:id/claims', requireAuth, async (req, res, next) => {
+exports.submitClaim = async (req, res, next) => {
   try {
     const item = await getItem(req.params.id);
     if (!item) throw new HttpError(404, 'Item not found.', 'not_found');
@@ -61,9 +55,9 @@ claimsRouter.post('/items/:id/claims', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-claimsRouter.get('/claims/mine', requireAuth, async (req, res, next) => {
+exports.getMyClaims = async (req, res, next) => {
   try {
     const userId = req.user._id || req.user.id;
     const rows = await Claim.find({ userId }).sort({ createdAt: -1, _id: -1 });
@@ -80,14 +74,9 @@ claimsRouter.get('/claims/mine', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-/* ---------- Admin: every route below is checked on the server ---------- */
-
-const adminRouter = express.Router();
-adminRouter.use(requireAdmin);
-
-adminRouter.get('/overview', async (req, res, next) => {
+exports.getAdminOverview = async (req, res, next) => {
   try {
     const [activeReports, returnedItems, possibleMatches, pendingClaims] = await Promise.all([
       Item.countDocuments({ status: { $ne: 'Returned' } }),
@@ -105,9 +94,9 @@ adminRouter.get('/overview', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-adminRouter.get('/claims', async (req, res, next) => {
+exports.getAdminClaims = async (req, res, next) => {
   try {
     const status = ['pending', 'approved', 'rejected'].includes(req.query.status) ? req.query.status : 'pending';
     const rows = await Claim.find({ status })
@@ -143,9 +132,9 @@ adminRouter.get('/claims', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-adminRouter.post('/claims/:id/decision', async (req, res, next) => {
+exports.decideClaim = async (req, res, next) => {
   try {
     const decision = str(req.body.decision, 10);
     if (!['approve', 'reject'].includes(decision)) {
@@ -171,7 +160,6 @@ adminRouter.post('/claims/:id/decision', async (req, res, next) => {
       item.status = 'Returned';
       await item.save();
 
-      // Reject all other pending claims on this item
       const others = await Claim.find({
         itemId: item._id,
         status: 'pending',
@@ -230,16 +218,14 @@ adminRouter.post('/claims/:id/decision', async (req, res, next) => {
       ]);
     }
 
-    // Send notifications after saving
     notices.forEach(([userId, n]) => notifyUser(userId, n));
-
     res.json({ ok: true, status: decision === 'approve' ? 'approved' : 'rejected' });
   } catch (err) {
     next(err);
   }
-});
+};
 
-adminRouter.get('/items', async (req, res, next) => {
+exports.getAdminItems = async (req, res, next) => {
   try {
     const rows = await Item.find().populate('userId').sort({ createdAt: -1, _id: -1 });
 
@@ -252,9 +238,9 @@ adminRouter.get('/items', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-adminRouter.delete('/items/:id', async (req, res, next) => {
+exports.deleteAdminItem = async (req, res, next) => {
   try {
     const item = await Item.findByIdAndDelete(req.params.id);
     if (!item) throw new HttpError(404, 'Item not found.', 'not_found');
@@ -266,6 +252,4 @@ adminRouter.delete('/items/:id', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-module.exports = { claimsRouter, adminRouter };
+};

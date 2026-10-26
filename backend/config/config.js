@@ -1,7 +1,7 @@
 const path = require('path');
 const crypto = require('crypto');
 
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
 const env = process.env;
 const bool = (v, fallback) => (v === undefined || v === '' ? fallback : String(v).toLowerCase() === 'true');
@@ -57,15 +57,12 @@ module.exports = {
   allowedEmailDomains: ['chitkara.edu', 'chitkara.edu.in'],
   restrictEmailDomain: bool(env.RESTRICT_EMAIL_DOMAIN, false),
   firebase: {
-    // Client-side web config (accessible by frontend)
     apiKey: env.FIREBASE_API_KEY || '',
     authDomain: env.FIREBASE_AUTH_DOMAIN || '',
     projectId: env.FIREBASE_PROJECT_ID || '',
     storageBucket: env.FIREBASE_STORAGE_BUCKET || '',
     messagingSenderId: env.FIREBASE_MESSAGING_SENDER_ID || '',
     appId: env.FIREBASE_APP_ID || '',
-
-    // Server-side Admin SDK credentials (optional / fallback)
     serviceAccountPath: env.FIREBASE_SERVICE_ACCOUNT_PATH || '',
     clientEmail: env.FIREBASE_CLIENT_EMAIL || '',
     privateKey: env.FIREBASE_PRIVATE_KEY ? env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : '',

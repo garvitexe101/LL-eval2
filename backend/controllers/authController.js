@@ -1,13 +1,9 @@
-const express = require('express');
 const bcrypt = require('bcryptjs');
-const { User } = require('../db');
-const config = require('../config');
+const { User } = require('../models');
+const config = require('../config/config');
 const { HttpError, str } = require('../http');
-const { issueToken, clearToken, rateLimit } = require('../middleware');
+const { issueToken, clearToken } = require('../middleware');
 const { verifyFirebaseIdToken, getClientConfig } = require('../firebase');
-
-const router = express.Router();
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 40 });
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_RE = /^[\p{L}][\p{L} .'-]*$/u;
@@ -31,15 +27,15 @@ function cleanEmail(value) {
   return email;
 }
 
-router.get('/me', (req, res) => {
+exports.getMe = (req, res) => {
   res.json({ user: req.user ? sessionUser(req.user) : null });
-});
+};
 
-router.get('/firebase-config', (req, res) => {
+exports.getFirebaseConfig = (req, res) => {
   res.json(getClientConfig());
-});
+};
 
-router.post('/firebase-login', limiter, async (req, res, next) => {
+exports.firebaseLogin = async (req, res, next) => {
   try {
     const idToken = req.body && req.body.idToken;
     if (!idToken) throw new HttpError(400, 'Missing Firebase ID token.', 'missing_token');
@@ -52,7 +48,6 @@ router.post('/firebase-login', limiter, async (req, res, next) => {
     const email = cleanEmail(decoded.email);
     const displayName = str(req.body.name || decoded.name || email.split('@')[0], 60);
 
-    // Look for existing user by firebaseUid or email
     let user = await User.findOne({
       $or: [{ firebaseUid: decoded.uid }, { email }],
     });
@@ -71,9 +66,7 @@ router.post('/firebase-login', limiter, async (req, res, next) => {
         user.role = 'admin';
         modified = true;
       }
-      if (modified) {
-        await user.save();
-      }
+      if (modified) await user.save();
     } else {
       const role = email === config.admin.email ? 'admin' : 'student';
       user = await User.create({
@@ -90,9 +83,9 @@ router.post('/firebase-login', limiter, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.post('/register', limiter, async (req, res, next) => {
+exports.register = async (req, res, next) => {
   try {
     const name = str(req.body.name, 60);
     const email = cleanEmail(req.body.email);
@@ -122,9 +115,9 @@ router.post('/register', limiter, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.post('/login', limiter, async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
     const email = str(req.body.email, 120).toLowerCase();
     const password = typeof req.body.password === 'string' ? req.body.password : '';
@@ -141,11 +134,9 @@ router.post('/login', limiter, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.post('/logout', (req, res) => {
+exports.logout = (req, res) => {
   clearToken(res);
   res.json({ ok: true });
-});
-
-module.exports = router;
+};

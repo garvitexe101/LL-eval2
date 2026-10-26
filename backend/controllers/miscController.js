@@ -1,13 +1,8 @@
-const express = require('express');
-const { Item, Notification, Match, toIso } = require('../db');
-const config = require('../config');
-const { requireAuth } = require('../middleware');
+const { Item, Notification, Match, toIso } = require('../models');
+const config = require('../config/config');
 const { publicItem, getItem } = require('../itemModel');
 
-const router = express.Router();
-
-// Dropdown values and map zones, so the frontend never hard-codes them.
-router.get('/meta', (req, res) => {
+exports.getMeta = (req, res) => {
   res.json({
     zones: config.zones,
     categories: config.categories,
@@ -15,10 +10,9 @@ router.get('/meta', (req, res) => {
     deposits: config.deposits,
     campusCenter: config.campusCenter,
   });
-});
+};
 
-// Zone-level map data. Only public fields are exposed; no private details or exact spots.
-router.get('/map', async (req, res, next) => {
+exports.getMapData = async (req, res, next) => {
   try {
     const rows = await Item.find({ status: { $ne: 'Returned' } })
       .select('type name zone')
@@ -44,9 +38,9 @@ router.get('/map', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.get('/notifications', requireAuth, async (req, res, next) => {
+exports.getNotifications = async (req, res, next) => {
   try {
     const userId = req.user._id || req.user.id;
     const rows = await Notification.find({ userId })
@@ -67,9 +61,9 @@ router.get('/notifications', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.post('/notifications/read-all', requireAuth, async (req, res, next) => {
+exports.readAllNotifications = async (req, res, next) => {
   try {
     const userId = req.user._id || req.user.id;
     await Notification.updateMany({ userId }, { $set: { isRead: true } });
@@ -77,14 +71,12 @@ router.post('/notifications/read-all', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-// Every potential match across all of my reports (for the profile page).
-router.get('/matches/mine', requireAuth, async (req, res, next) => {
+exports.getMyMatches = async (req, res, next) => {
   try {
     const userId = req.user._id || req.user.id;
 
-    // Find all active items owned by this user
     const myItems = await Item.find({ userId, status: { $ne: 'Returned' } }).select('_id');
     const myItemIds = myItems.map((i) => i._id);
 
@@ -115,6 +107,4 @@ router.get('/matches/mine', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-module.exports = router;
+};

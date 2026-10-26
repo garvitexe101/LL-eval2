@@ -3,13 +3,17 @@ const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s)
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
+/* Configurable backend API URL for deployment (Requirement 5) */
+const API_BASE_URL = (window.API_BASE_URL || '').replace(/\/$/, '');
+
 /* Calls the Express API. Throws an Error with .status and .code on failure. */
 async function api(path, { method = 'GET', body } = {}) {
-  const res = await fetch('/api' + path, {
+  const url = `${API_BASE_URL}/api${path}`;
+  const res = await fetch(url, {
     method,
-    credentials: 'same-origin',
+    credentials: API_BASE_URL ? 'include' : 'same-origin',
     headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body)
+    body: body === undefined ? undefined : JSON.stringify(body),
   });
   let data = null;
   try { data = await res.json(); } catch (e) { data = null; }

@@ -2,14 +2,14 @@
   "name": "lostlink",
   "version": "2.0.0",
   "description": "LostLink - campus lost and found (Express + MongoDB)",
-  "main": "server/index.js",
+  "main": "backend/server.js",
   "private": true,
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

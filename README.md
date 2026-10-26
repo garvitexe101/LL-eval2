@@ -1,78 +1,112 @@
-# LostLink
+# LostLink – Campus Lost & Found (Evaluation 2)
 
 > **Lost, found, back to you.**
-> A campus lost-and-found web app for Chitkara University, Rajpura Campus.
+> A modern campus lost-and-found web application for Chitkara University, Rajpura Campus.
 
-Evaluation 2 version: the original HTML/CSS/JS frontend now talks to a **Node.js + Express** API backed by **MongoDB**.
+Evaluation 2 version follows the **MVC (Model-View-Controller)** pattern with a **Node.js + Express** backend, **MongoDB (Mongoose)** database, and an interactive **HTML/CSS/JS + Leaflet** frontend.
 
-## Run it locally
+---
 
-Full walkthrough with troubleshooting: [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md).
+## Project Structure (Requirement 2 & 7)
+
+```text
+LostLink/
+├── backend/                  <- Node.js & Express MVC Backend
+│   ├── config/               <- Environment & MongoDB connection settings
+│   │   ├── config.js
+│   │   └── db.js
+│   ├── models/               <- Mongoose Schemas & Models (Model in MVC)
+│   │   ├── User.js
+│   │   ├── Item.js
+│   │   ├── Claim.js
+│   │   ├── Match.js
+│   │   └── Notification.js
+│   ├── controllers/          <- Application Logic & Handlers (Controller in MVC)
+│   │   ├── authController.js
+│   │   ├── itemController.js
+│   │   ├── claimController.js
+│   │   └── miscController.js
+│   ├── routes/               <- REST Endpoint Routing
+│   │   ├── auth.js
+│   │   ├── items.js
+│   │   ├── claims.js
+│   │   └── misc.js
+│   ├── middleware/           <- JWT Auth & Security Middleware
+│   ├── services/             <- Matching Engine & Nodemailer Service
+│   ├── seed.js               <- Database Seeder (Admin & Demo Data)
+│   └── server.js             <- Express Application Entry Point
+├── frontend/                 <- Client-Side User Interface (View in MVC)
+│   ├── css/                  <- Responsive Styles
+│   ├── js/                   <- Frontend Logic & API Client
+│   │   ├── config.js         <- Configurable Deployed API URL (Requirement 5)
+│   │   ├── shared.js         <- Shared API Client & Session Helper
+│   │   └── map.js            <- Leaflet Campus Map Controller
+│   ├── vendor/               <- Local Leaflet Bundle (Offline-ready)
+│   ├── index.html            <- Home Page
+│   ├── browse.html           <- Browse Active Reports
+│   ├── lost.html             <- Report Lost Item
+│   ├── found.html            <- Report Found Item
+│   ├── map.html              <- Campus Map
+│   ├── item.html             <- Item Details & Claim Submission
+│   ├── signin.html           <- Firebase & Local Authentication
+│   ├── profile.html          <- My Reports & Matches
+│   ├── admin.html            <- Admin Claim Review & Management
+│   └── how-it-works.html     <- Student Workflow Guide
+├── docs/
+│   ├── DEPLOYMENT_GUIDE.md   <- Render & MongoDB Atlas Deployment + Viva Prep
+│   └── LOCAL_SETUP.md        <- Local Development Guide
+├── LostLink_API_Collection.json <- Postman & Thunder Client Collection (Requirement 4)
+├── .env.example              <- Configuration Template (Secrets Ignored)
+├── package.json              <- Dependencies & Scripts
+└── README.md
+```
+
+---
+
+## Quick Start (Local Setup)
 
 Requires Node.js 18 or newer and MongoDB (local or MongoDB Atlas).
 
 ```bash
+# 1. Install dependencies
 npm install
-cp .env.example .env     # optional - configure MONGODB_URI
+
+# 2. Configure environment (optional, defaults work locally)
+cp .env.example .env
+
+# 3. Start the application
 npm start
 ```
 
-Open <http://localhost:3000>.
+Open <http://localhost:3000> in your browser.
 
-On first start the app initializes collections in MongoDB, an admin account, and demo reports.
+| Default Account | Email | Password | Role |
+| --- | --- | --- | --- |
+| **Campus Admin** | `admin@chitkara.edu` | `admin123` | Administrator (Reviews claims, manages items) |
+| **Student** | Any `@chitkara.edu` email | Password of your choice | Student (Reports lost/found items, claims) |
 
-| Account | Email | Password |
-| --- | --- | --- |
-| Admin | `admin@chitkara.edu` | `admin123` (change via `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `.env`) |
-| Student | any `@chitkara.edu` or `@chitkara.edu.in` email | the sign-in page creates the account on first use |
+---
 
-To try the full workflow with two people, use two browsers (or one normal and one private window):
-student A reports a **found** item, student B reports a **lost** item at the same location, then B claims it and the admin approves it.
+## Evaluation 2 Requirements Checklist
 
-## What was added
+| Requirement | Implementation Detail | Status |
+| :--- | :--- | :---: |
+| **1. Backend Development** | RESTful API built with Node.js and Express.js | **Complete** |
+| **2. MVC Architecture** | Strict separation into `backend/models`, `backend/controllers`, `backend/routes`, and `frontend/` | **Complete** |
+| **3. Backend Deployment** | Ready for 1-click deployment on Render.com ([Deployment Guide](docs/DEPLOYMENT_GUIDE.md)) | **Complete** |
+| **4. API Testing** | Exported `LostLink_API_Collection.json` for Thunder Client & Postman | **Complete** |
+| **5. Frontend Integration** | Configurable `window.API_BASE_URL` in `frontend/js/config.js` pointing to deployed backend | **Complete** |
+| **6. GitHub Repository** | Maintained on repository `garvitexe101/LL-eval2` | **Complete** |
+| **7. Project Structure** | Both `frontend/` and `backend/` directories present in the same repository | **Complete** |
 
-- **Express API** (`server/`): auth, items, claims, matches, notifications, map and admin routes.
-- **MongoDB** (`mongoose`): users, items, claims, matches and notifications schemas and models.
-- **Authentication**: Firebase Authentication (Google Sign-In + Email/Password) bridged with local MongoDB session cookies.
-- **Validation** of every submitted field on the server.
-- **Rule-based matching** (no AI) in `server/matching.js`. A lost and a found report are scored out of 100:
-  category 25, campus zone 25, colour 15, date proximity 15, description keywords 20.
-  Scores of 50+ are stored as possible matches; 70+ also notify both owners. Thresholds and weights are easy to tune.
-- **Email notifications** (Nodemailer) for strong matches, claim approvals and rejections. Without SMTP settings, emails are printed to the server console.
-- **Live map**: Leaflet + OpenStreetMap Humanitarian, with zone-level markers (never exact positions). Zone coordinates are approximate and live in `server/config.js`.
-- **Privacy**: private ownership details are never returned by public endpoints; only the report owner and admins can see them.
+---
 
-## Workflow
+## API Testing (Requirement 4)
 
-Sign in → submit lost/found report → Express validates and saves it in MongoDB → matching service compares it with opposite reports → matches are shown (and emailed if strong) → a user submits a claim on a found item → an admin reviews it → the database is updated and the claimant is emailed.
-
-## Configuration (`.env`)
-
-See `.env.example`. Secrets stay in `.env`, which is git-ignored. Set `MONGODB_URI` to connect to MongoDB, `JWT_SECRET` to keep users signed in across restarts, and `SMTP_*` values to send real email.
-
-## Project layout
-
-```
-public/            frontend (HTML, CSS, JS) served by Express
-server/
-  index.js         app setup and routing
-  config.js        env + campus zones, categories, colours
-  db.js            MongoDB Mongoose models and connection
-  matching.js      rule-based matching
-  mailer.js        Nodemailer wrapper
-  notify.js        in-app notification + email
-  routes/          auth, items, claims (+ admin), misc (meta, map, notifications, matches)
-```
-
-## API summary
-
-| Method | Path | Notes |
-| --- | --- | --- |
-| POST | `/api/auth/register`, `/login`, `/logout`, `/firebase-login` · GET `/me` | cookie session |
-| GET | `/api/items` | public active reports (`type`, `category`, `zone`, `q`) |
-| POST | `/api/items` | sign-in required; returns the saved report and its matches |
-| GET | `/api/items/:id`, `/:id/image`, `/:id/matches` | matches: owner or admin only |
-| GET | `/api/items/mine`, `/api/items/returned` | |
-| POST | `/api/items/:id/claims` | sign-in required |
-| GET | `/api/notifications`, `/api/matches/mine`, `/api/map`, `/api/meta` | |
-| GET/POST/DELETE | `/api/admin/overview`, `/claims`, `/claims/:id/decision`, `/items`, `/items/:id` | admin only |
+Import **`LostLink_API_Collection.json`** into Postman or VS Code Thunder Client:
+- **`POST /api/auth/login`**: Sign in as administrator or student
+- **`GET /api/items`**: Browse active lost and found reports with query filters
+- **`POST /api/items`**: Submit a new lost/found report (triggers rule-based matching)
+- **`GET /api/items/:id/matches`**: View potential matches (Category 25, Zone 25, Colour 15, Date 15, Text 20)
+- **`POST /api/items/:id/claims`**: Submit an ownership claim on a found item
+- **`GET /api/admin/overview`**: View dashboard metrics and pending claims

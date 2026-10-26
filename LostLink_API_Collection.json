@@ -1,0 +1,400 @@
+{
+  "info": {
+    "name": "LostLink API Collection",
+    "description": "Comprehensive API testing collection for LostLink (Evaluation 2). Compatible with Postman and VS Code Thunder Client.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "sample_item_id",
+      "type": "string"
+    },
+    {
+      "key": "claimId",
+      "value": "sample_claim_id",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "1. Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@chitkara.edu\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Logs in the campus administrator account and issues an HTTP-only JWT session cookie."
+          }
+        },
+        {
+          "name": "2. Register Student Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rohan Sharma\",\n  \"email\": \"rohan.student@chitkara.edu\",\n  \"password\": \"studentPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Registers a new student user and establishes a session cookie."
+          }
+        },
+        {
+          "name": "3. Get Current User Session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Returns current logged in user details or null."
+          }
+        },
+        {
+          "name": "4. Get Firebase Public Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/firebase-config",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "firebase-config"]
+            },
+            "description": "Exposes public Firebase config (API key, project ID) to the frontend client."
+          }
+        },
+        {
+          "name": "5. Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Clears user session cookie."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lost & Found Items",
+      "item": [
+        {
+          "name": "1. Get All Active Items (Browse)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"]
+            },
+            "description": "Returns public list of active (unreturned) lost and found reports."
+          }
+        },
+        {
+          "name": "2. Filter Items by Category & Zone",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items?category=Bags&zone=Square+One",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Bags"
+                },
+                {
+                  "key": "zone",
+                  "value": "Square One"
+                }
+              ]
+            },
+            "description": "Filters items by category, zone, or keyword query."
+          }
+        },
+        {
+          "name": "3. Search Items by Keyword",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items?q=wallet",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "wallet"
+                }
+              ]
+            },
+            "description": "Performs case-insensitive regex search on name, description, zone, and colour."
+          }
+        },
+        {
+          "name": "4. Report Lost Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"lost\",\n  \"name\": \"Navy Blue Laptop Backpack\",\n  \"category\": \"Bags\",\n  \"colour\": \"Blue\",\n  \"zone\": \"Turing Block\",\n  \"date\": \"2026-10-26\",\n  \"time\": \"14:00\",\n  \"description\": \"HP laptop backpack lost near Turing Block ground floor stairs.\",\n  \"privateDetail\": \"Contains university ID card and red water bottle inside\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"]
+            },
+            "description": "Submits a lost item report. Automatically triggers matching algorithm."
+          }
+        },
+        {
+          "name": "5. Report Found Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"found\",\n  \"name\": \"Blue HP Backpack\",\n  \"category\": \"Bags\",\n  \"colour\": \"Blue\",\n  \"zone\": \"Turing Block\",\n  \"date\": \"2026-10-26\",\n  \"time\": \"14:30\",\n  \"description\": \"Found blue HP laptop backpack with red bottle in side pocket.\",\n  \"deposit\": \"Security Office\",\n  \"privateDetail\": \"Student roll number 221099xxxx\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"]
+            },
+            "description": "Submits a found item report. Automatically checks for opposite matches."
+          }
+        },
+        {
+          "name": "6. Get Item Details by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "description": "Returns full details for an item (private details visible only to owner/admin)."
+          }
+        },
+        {
+          "name": "7. Get Potential Matches for Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/matches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}", "matches"]
+            },
+            "description": "Returns scored rule-based matches (Category 25, Zone 25, Colour 15, Date 15, Keywords 20)."
+          }
+        },
+        {
+          "name": "8. Get Recently Returned Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/returned",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "returned"]
+            },
+            "description": "Returns list of successfully recovered and returned campus items."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Claims Workflow",
+      "item": [
+        {
+          "name": "1. Submit Ownership Claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"colour\": \"Navy Blue\",\n  \"location\": \"Turing Block\",\n  \"privateFeature\": \"Red water bottle and university keychain inside\",\n  \"descriptionWord\": \"laptop backpack\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/claims",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}", "claims"]
+            },
+            "description": "Submits answers to verification questions to claim a found item."
+          }
+        },
+        {
+          "name": "2. Get My Submitted Claims",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/claims/mine",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "claims", "mine"]
+            },
+            "description": "Returns status of all claims submitted by the logged-in user."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Management",
+      "item": [
+        {
+          "name": "1. Dashboard Overview Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "overview"]
+            },
+            "description": "Returns active reports, returned items, possible matches, and pending claims count."
+          }
+        },
+        {
+          "name": "2. View All Pending Claims",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/claims?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "claims"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            },
+            "description": "Lists claims with full verification answers and claimant info for admin review."
+          }
+        },
+        {
+          "name": "3. Approve Claim",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"approve\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/claims/{{claimId}}/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "claims", "{{claimId}}", "decision"]
+            },
+            "description": "Approves a claim, flags item as Returned, rejects conflicting claims, and triggers emails."
+          }
+        },
+        {
+          "name": "4. View All Items (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "items"]
+            },
+            "description": "Lists all items with owner emails and full administration data."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campus Map & Metadata",
+      "item": [
+        {
+          "name": "1. Get Campus Map Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/map",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "map"]
+            },
+            "description": "Returns zone coordinates, lost/found counts, and recent reports for the Leaflet campus map."
+          }
+        },
+        {
+          "name": "2. Get Metadata (Categories & Zones)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/meta",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "meta"]
+            },
+            "description": "Returns allowed campus zones, categories, colours, and deposits."
+          }
+        }
+      ]
+    }
+  ]
+}

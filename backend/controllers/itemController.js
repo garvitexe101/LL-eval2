@@ -1,12 +1,8 @@
-const express = require('express');
-const { Item, Claim, Match } = require('../db');
-const config = require('../config');
+const { Item, Claim, Match } = require('../models');
+const config = require('../config/config');
 const { HttpError, str } = require('../http');
-const { requireAuth } = require('../middleware');
 const { publicItem, getItem } = require('../itemModel');
 const { processNewItem } = require('../matching');
-
-const router = express.Router();
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const IMAGE_RE = /^data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
@@ -64,23 +60,19 @@ function validateReport(body) {
   };
 }
 
-// Public list of active (not yet returned) reports.
-router.get('/', async (req, res, next) => {
+exports.getItems = async (req, res, next) => {
   try {
     const filter = { status: { $ne: 'Returned' } };
 
     const type = str(req.query.type, 10);
-    if (type === 'lost' || type === 'found') {
-      filter.type = type;
-    }
+    if (type === 'lost' || type === 'found') filter.type = type;
+
     const category = str(req.query.category, 40);
-    if (category) {
-      filter.category = category;
-    }
+    if (category) filter.category = category;
+
     const zone = str(req.query.zone, 60);
-    if (zone) {
-      filter.zone = zone;
-    }
+    if (zone) filter.zone = zone;
+
     const q = str(req.query.q, 80);
     if (q) {
       const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
@@ -101,9 +93,9 @@ router.get('/', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.get('/returned', async (req, res, next) => {
+exports.getReturnedItems = async (req, res, next) => {
   try {
     const rows = await Item.find({ status: 'Returned' })
       .select('-image')
@@ -113,9 +105,9 @@ router.get('/returned', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.get('/mine', requireAuth, async (req, res, next) => {
+exports.getMyItems = async (req, res, next) => {
   try {
     const userId = req.user._id || req.user.id;
     const rows = await Item.find({ userId })
@@ -125,9 +117,9 @@ router.get('/mine', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.post('/', requireAuth, async (req, res, next) => {
+exports.createItem = async (req, res, next) => {
   try {
     const d = validateReport(req.body || {});
     const userId = req.user._id || req.user.id;
@@ -159,9 +151,9 @@ router.post('/', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.get('/:id', async (req, res, next) => {
+exports.getItemById = async (req, res, next) => {
   try {
     const row = await getItem(req.params.id);
     if (!row) throw new HttpError(404, 'Item not found.', 'not_found');
@@ -176,9 +168,9 @@ router.get('/:id', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-router.get('/:id/image', async (req, res, next) => {
+exports.getItemImage = async (req, res, next) => {
   try {
     const row = await Item.findById(req.params.id).select('image');
     const m = row && row.image ? IMAGE_RE.exec(row.image) : null;
@@ -188,10 +180,9 @@ router.get('/:id/image', async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
+};
 
-// Potential matches for one of my reports (admins can view any).
-router.get('/:id/matches', requireAuth, async (req, res, next) => {
+exports.getItemMatches = async (req, res, next) => {
   try {
     const row = await getItem(req.params.id);
     if (!row) throw new HttpError(404, 'Item not found.', 'not_found');
@@ -221,6 +212,4 @@ router.get('/:id/matches', requireAuth, async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-module.exports = router;
+};
