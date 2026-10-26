@@ -2814,3 +2814,112 @@ footer a {
     transform:translateX(-24px)
   }
 }
+
+
+/* ==========================================================================
+   12-HOUR TIME PICKER WITH EXPLICIT AM / PM TOGGLE
+   ========================================================================== */
+.time-picker-label {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.custom-time-picker {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.time-input-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.time-input-field {
+  width: 100% !important;
+  padding: 10px 12px 10px 34px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  color: #17243c !important;
+  background: #fbfcfa !important;
+  border: 1px solid #dfe4dd !important;
+  border-radius: 6px !important;
+  outline-color: #f29a83 !important;
+}
+
+.time-clock-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.ampm-switch {
+  display: inline-flex;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+  align-items: center;
+}
+
+.ampm-toggle-btn {
+  background: transparent !important;
+  color: #64748b !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 6px 12px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+  user-select: none !important;
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ampm-toggle-btn:hover {
+  color: #0f172a !important;
+}
+
+.ampm-toggle-btn.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25) !important;
+}
+
+.time-quick-presets {
+  font-size: 11px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+  margin-top: 3px !important;
+  height: auto !important;
+}
+
+.time-quick-presets a {
+  color: #0284c7 !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  padding: 1px 4px !important;
+  border-radius: 4px !important;
+  transition: background 0.15s ease !important;
+}
+
+.time-quick-presets a:hover {
+  background: #e0f2fe !important;
+  text-decoration: underline !important;
+}

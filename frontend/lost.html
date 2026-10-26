@@ -50,7 +50,7 @@
 <option>Hostels</option></select><small></small></label>
 </div>
 <div class="form-row">
-<label>Date *<input type="date" required id="date"><small></small></label><label>Approximate time<input type="time" id="time"></label>
+<label>Date *<input type="date" required id="date"><small></small></label><label class="time-picker-label">Approximate time<div class="custom-time-picker"><div class="time-input-wrap"><input type="text" id="timeDisplay" placeholder="02:30" maxlength="5" autocomplete="off" class="time-input-field"><span class="time-clock-icon">🕒</span></div><div class="ampm-switch" id="ampmSwitch"><button type="button" class="ampm-toggle-btn active" data-period="AM">AM</button><button type="button" class="ampm-toggle-btn" data-period="PM">PM</button></div></div><input type="hidden" id="time" name="time"><small class="time-quick-presets">Quick: <a href="#" class="quick-time" data-val="09:00 AM">9:00 AM</a> &middot; <a href="#" class="quick-time" data-val="01:30 PM">1:30 PM</a> &middot; <a href="#" class="quick-time" data-val="05:00 PM">5:00 PM</a> &middot; <a href="#" class="quick-time" data-val="now">Now</a></small></label>
 </div>
 <label>Description *<textarea required id="description" maxlength="280" placeholder="Include distinctive details, condition, or anything that might help identify it."></textarea><small></small></label><label class="private-input">Private ownership detail <span>Not shown in the listing</span><input id="privateDetail" maxlength="100" placeholder="e.g. There is a small sticker inside the case"></label><button class="btn btn-dark submit-report" type="submit">Find possible matches <b>&rarr;</b></button>
 </form></section>

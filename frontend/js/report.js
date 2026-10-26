@@ -11,6 +11,109 @@
   $$('select').forEach(s => s.classList.add('modern-select'));
   $('#date').value = new Date().toISOString().slice(0, 10);
 
+  // Initialize 12-Hour Time Picker with AM / PM toggle
+  function initTimePicker() {
+    const displayInput = $('#timeDisplay');
+    const hiddenTime = $('#time');
+    const ampmBtns = $$('.ampm-toggle-btn');
+    if (!displayInput || !hiddenTime) return;
+
+    let currentPeriod = 'AM';
+
+    function syncTime() {
+      let val = displayInput.value.trim();
+      if (!val) {
+        hiddenTime.value = '';
+        return;
+      }
+
+      val = val.replace(/[^\d:]/g, '');
+      const parts = val.split(':');
+      let h = parseInt(parts[0], 10);
+      let m = parts[1] !== undefined ? parseInt(parts[1], 10) : 0;
+
+      if (isNaN(h)) {
+        hiddenTime.value = '';
+        return;
+      }
+
+      // Auto-convert 24h format if typed (e.g. 15:30 -> 03:30 PM)
+      if (h >= 12) {
+        if (h > 12) h = h - 12;
+        setPeriod('PM');
+      } else if (h === 0) {
+        h = 12;
+        setPeriod('AM');
+      }
+
+      if (isNaN(m) || m < 0) m = 0;
+      if (m > 59) m = 59;
+
+      const formattedH = String(h).padStart(2, '0');
+      const formattedM = String(m).padStart(2, '0');
+      displayInput.value = `${formattedH}:${formattedM}`;
+      hiddenTime.value = `${formattedH}:${formattedM} ${currentPeriod}`;
+    }
+
+    function setPeriod(p) {
+      currentPeriod = p;
+      ampmBtns.forEach(btn => {
+        if (btn.dataset.period === p) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      if (displayInput.value.trim()) {
+        syncTime();
+      }
+    }
+
+    ampmBtns.forEach(btn => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        setPeriod(btn.dataset.period);
+      };
+    });
+
+    displayInput.oninput = () => {
+      const val = displayInput.value.trim();
+      if (val.length === 5) {
+        syncTime();
+      } else if (val) {
+        hiddenTime.value = `${val} ${currentPeriod}`;
+      } else {
+        hiddenTime.value = '';
+      }
+    };
+
+    displayInput.onblur = syncTime;
+
+    // Quick chips (e.g. 9:00 AM, 1:30 PM, Now)
+    $$('.quick-time').forEach(a => {
+      a.onclick = e => {
+        e.preventDefault();
+        const val = a.dataset.val;
+        if (val === 'now') {
+          const now = new Date();
+          let h = now.getHours();
+          const m = String(now.getMinutes()).padStart(2, '0');
+          const p = h >= 12 ? 'PM' : 'AM';
+          h = h % 12 || 12;
+          displayInput.value = `${String(h).padStart(2, '0')}:${m}`;
+          setPeriod(p);
+        } else {
+          const [timePart, p] = val.split(' ');
+          displayInput.value = timePart;
+          setPeriod(p);
+        }
+        syncTime();
+      };
+    });
+  }
+
+  initTimePicker();
+
   try {
     const meta = await api('/meta');
     $('#zone').innerHTML = '<option value="">Choose campus location</option>' + meta.zones.map(z => `<option>${esc(z.name)}</option>`).join('');
