@@ -115,6 +115,20 @@
       "item": [
         {
           "name": "1. Get All Active Items (Browse)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.items && res.items.length > 0) {",
+                  "    pm.collectionVariables.set('itemId', res.items[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -170,6 +184,20 @@
         },
         {
           "name": "4. Report Lost Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.item && res.item.id) {",
+                  "    pm.collectionVariables.set('itemId', res.item.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -192,6 +220,20 @@
         },
         {
           "name": "5. Report Found Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.item && res.item.id) {",
+                  "    pm.collectionVariables.set('itemId', res.item.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -258,6 +300,20 @@
       "item": [
         {
           "name": "1. Submit Ownership Claim",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.claim && res.claim.id) {",
+                  "    pm.collectionVariables.set('claimId', res.claim.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -311,6 +367,20 @@
         },
         {
           "name": "2. View All Pending Claims",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.claims && res.claims.length > 0) {",
+                  "    pm.collectionVariables.set('claimId', res.claims[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
