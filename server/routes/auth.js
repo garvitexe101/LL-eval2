@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+const { User } = require('../db');
 const config = require('../config');
 const { HttpError, str } = require('../http');
 const { issueToken, clearToken, rateLimit } = require('../middleware');
@@ -12,7 +12,12 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 40 });
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NAME_RE = /^[\p{L}][\p{L} .'-]*$/u;
 
-const sessionUser = (u) => ({ id: u.id, name: u.name, email: u.email, role: u.role });
+const sessionUser = (u) => ({
+  id: u.id || u._id?.toString(),
+  name: u.name,
+  email: u.email,
+  role: u.role,
+});
 
 function cleanEmail(value) {
   const email = str(value, 120).toLowerCase();
@@ -47,36 +52,37 @@ router.post('/firebase-login', limiter, async (req, res, next) => {
     const email = cleanEmail(decoded.email);
     const displayName = str(req.body.name || decoded.name || email.split('@')[0], 60);
 
-    // Look for existing user by firebase_uid or email
-    let user = db
-      .prepare('SELECT id, name, email, role, firebase_uid FROM users WHERE firebase_uid = ? OR email = ?')
-      .get(decoded.uid, email);
+    // Look for existing user by firebaseUid or email
+    let user = await User.findOne({
+      $or: [{ firebaseUid: decoded.uid }, { email }],
+    });
 
     if (user) {
-      const updates = [];
-      const params = [];
-      if (!user.firebase_uid) {
-        updates.push('firebase_uid = ?');
-        params.push(decoded.uid);
+      let modified = false;
+      if (!user.firebaseUid) {
+        user.firebaseUid = decoded.uid;
+        modified = true;
       }
       if (displayName && (!user.name || user.name === 'Campus User')) {
-        updates.push('name = ?');
-        params.push(displayName);
+        user.name = displayName;
+        modified = true;
       }
       if (email === config.admin.email && user.role !== 'admin') {
-        updates.push("role = 'admin'");
+        user.role = 'admin';
+        modified = true;
       }
-      if (updates.length > 0) {
-        params.push(user.id);
-        db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
-        user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(user.id);
+      if (modified) {
+        await user.save();
       }
     } else {
       const role = email === config.admin.email ? 'admin' : 'student';
-      const info = db
-        .prepare('INSERT INTO users (name, email, password_hash, role, firebase_uid) VALUES (?, ?, ?, ?, ?)')
-        .run(displayName, email, 'FIREBASE_AUTH', role, decoded.uid);
-      user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(info.lastInsertRowid);
+      user = await User.create({
+        name: displayName,
+        email,
+        passwordHash: 'FIREBASE_AUTH',
+        role,
+        firebaseUid: decoded.uid,
+      });
     }
 
     issueToken(res, user);
@@ -86,43 +92,55 @@ router.post('/firebase-login', limiter, async (req, res, next) => {
   }
 });
 
-router.post('/register', limiter, (req, res) => {
-  const name = str(req.body.name, 60);
-  const email = cleanEmail(req.body.email);
-  const password = typeof req.body.password === 'string' ? req.body.password : '';
+router.post('/register', limiter, async (req, res, next) => {
+  try {
+    const name = str(req.body.name, 60);
+    const email = cleanEmail(req.body.email);
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
 
-  if (name.length < 3 || !NAME_RE.test(name)) {
-    throw new HttpError(400, 'Name must be at least 3 letters (letters and spaces only).', 'invalid_name');
-  }
-  if (password.length < 6 || password.length > 72) {
-    throw new HttpError(400, 'Password must be between 6 and 72 characters.', 'invalid_password');
-  }
-  if (db.prepare('SELECT 1 FROM users WHERE email = ?').get(email)) {
-    throw new HttpError(409, 'An account with this email already exists. Sign in instead.', 'email_taken');
-  }
+    if (name.length < 3 || !NAME_RE.test(name)) {
+      throw new HttpError(400, 'Name must be at least 3 letters (letters and spaces only).', 'invalid_name');
+    }
+    if (password.length < 6 || password.length > 72) {
+      throw new HttpError(400, 'Password must be between 6 and 72 characters.', 'invalid_password');
+    }
 
-  const info = db
-    .prepare('INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)')
-    .run(name, email, bcrypt.hashSync(password, 10), 'student');
-  const user = db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(info.lastInsertRowid);
+    const existing = await User.findOne({ email });
+    if (existing) {
+      throw new HttpError(409, 'An account with this email already exists. Sign in instead.', 'email_taken');
+    }
 
-  issueToken(res, user);
-  res.status(201).json({ user: sessionUser(user) });
+    const user = await User.create({
+      name,
+      email,
+      passwordHash: bcrypt.hashSync(password, 10),
+      role: 'student',
+    });
+
+    issueToken(res, user);
+    res.status(201).json({ user: sessionUser(user) });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/login', limiter, (req, res) => {
-  const email = str(req.body.email, 120).toLowerCase();
-  const password = typeof req.body.password === 'string' ? req.body.password : '';
-  if (!email || !password) throw new HttpError(400, 'Email and password are required.', 'invalid_credentials');
+router.post('/login', limiter, async (req, res, next) => {
+  try {
+    const email = str(req.body.email, 120).toLowerCase();
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    if (!email || !password) throw new HttpError(400, 'Email and password are required.', 'invalid_credentials');
 
-  const row = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-  if (!row) throw new HttpError(404, 'No account found for this email.', 'no_account');
-  if (!bcrypt.compareSync(password, row.password_hash)) {
-    throw new HttpError(401, 'Incorrect email or password.', 'invalid_credentials');
+    const user = await User.findOne({ email });
+    if (!user) throw new HttpError(404, 'No account found for this email.', 'no_account');
+    if (!bcrypt.compareSync(password, user.passwordHash)) {
+      throw new HttpError(401, 'Incorrect email or password.', 'invalid_credentials');
+    }
+
+    issueToken(res, user);
+    res.json({ user: sessionUser(user) });
+  } catch (err) {
+    next(err);
   }
-
-  issueToken(res, row);
-  res.json({ user: sessionUser(row) });
 });
 
 router.post('/logout', (req, res) => {

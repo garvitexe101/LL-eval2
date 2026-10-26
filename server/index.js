@@ -3,12 +3,9 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 
 const config = require('./config');
-const db = require('./db');
+const { mongoose, connectDB, disconnectDB } = require('./db');
 const { loadUser } = require('./middleware');
 const { ensureAdmin, seedDemoData } = require('./seed');
-
-ensureAdmin();
-seedDemoData();
 
 const app = express();
 app.disable('x-powered-by');
@@ -51,17 +48,31 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(config.port, () => {
-  console.log(`LostLink running at http://localhost:${config.port}`);
-  if (config.jwtSecretIsRandom) console.log('Note: JWT_SECRET not set - sessions reset on every restart.');
-  if (!config.smtp.host) console.log('Note: SMTP not configured - emails are printed to this console.');
-});
-
-function shutdown() {
-  server.close(() => {
-    db.close();
-    process.exit(0);
+async function startServer() {
+  const server = app.listen(config.port, () => {
+    console.log(`LostLink running at http://localhost:${config.port}`);
+    if (config.jwtSecretIsRandom) console.log('Note: JWT_SECRET not set - sessions reset on every restart.');
+    if (!config.smtp.host) console.log('Note: SMTP not configured - emails are printed to this console.');
   });
+
+  // Attempt MongoDB connection
+  connectDB().then(async () => {
+    if (mongoose.connection.readyState === 1) {
+      await ensureAdmin();
+      await seedDemoData();
+    }
+  });
+
+  function shutdown() {
+    server.close(async () => {
+      await disconnectDB();
+      process.exit(0);
+    });
+  }
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 }
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+
+startServer().catch((err) => {
+  console.error('Failed to start server:', err);
+});

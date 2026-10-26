@@ -25,7 +25,7 @@ const zones = [
 module.exports = {
   port: num(env.PORT, 3000),
   publicUrl: (env.PUBLIC_URL || `http://localhost:${num(env.PORT, 3000)}`).replace(/\/$/, ''),
-  dbPath: path.resolve(env.DB_PATH || path.join(__dirname, '..', 'data', 'lostlink.db')),
+  mongodbUri: env.MONGODB_URI || 'mongodb://127.0.0.1:27017/lostlink',
   jwtSecret: env.JWT_SECRET || crypto.randomBytes(32).toString('hex'),
   jwtSecretIsRandom: !env.JWT_SECRET,
   secureCookies: bool(env.COOKIE_SECURE, false),

@@ -1,7 +1,6 @@
-const db = require('./db');
+const { Item, Match } = require('./db');
 const config = require('./config');
-const { notifyUser, notifyMatch } = require('./notify');
-const { COLS } = require('./itemModel');
+const { notifyMatch } = require('./notify');
 
 /*
  * Rule-based matching (no AI). A lost and a found report are scored out of 100:
@@ -96,36 +95,50 @@ function scorePair(lost, found) {
  * stores matches at or above the minimum score, flags both reports as "Possible match",
  * and notifies both owners about strong matches.
  */
-function processNewItem(item) {
-  const other = item.type === 'lost' ? 'found' : 'lost';
-  const candidates = db
-    .prepare(`SELECT ${COLS} FROM items WHERE type = ? AND status != 'Returned' AND user_id != ?`)
-    .all(other, item.user_id);
+async function processNewItem(item) {
+  try {
+    const otherType = item.type === 'lost' ? 'found' : 'lost';
+    const itemUserId = item.userId?._id || item.userId || item.user_id;
 
-  const upsert = db.prepare(
-    `INSERT INTO matches (lost_id, found_id, score, reasons) VALUES (?, ?, ?, ?)
-     ON CONFLICT (lost_id, found_id) DO UPDATE SET score = excluded.score, reasons = excluded.reasons`
-  );
-  const flag = db.prepare("UPDATE items SET status = 'Possible match' WHERE id = ? AND status = 'Open'");
+    const candidates = await Item.find({
+      type: otherType,
+      status: { $ne: 'Returned' },
+      userId: { $ne: itemUserId },
+    });
 
-  const results = [];
-  for (const cand of candidates) {
-    const lost = item.type === 'lost' ? item : cand;
-    const found = item.type === 'found' ? item : cand;
-    const { score, reasons } = scorePair(lost, found);
-    if (score < config.match.min) continue;
+    const results = [];
+    for (const cand of candidates) {
+      const lost = item.type === 'lost' ? item : cand;
+      const found = item.type === 'found' ? item : cand;
+      const { score, reasons } = scorePair(lost, found);
+      if (score < config.match.min) continue;
 
-    upsert.run(lost.id, found.id, score, JSON.stringify(reasons));
-    flag.run(lost.id);
-    flag.run(found.id);
-    results.push({ lost, found, other: cand, score, reasons });
+      const lostId = lost._id || lost.id;
+      const foundId = found._id || found.id;
 
-    if (score >= config.match.strong) {
-      notifyMatch({ lost, found, score, reasons });
+      await Match.findOneAndUpdate(
+        { lostId, foundId },
+        { score, reasons },
+        { upsert: true, new: true }
+      );
+
+      await Item.updateMany(
+        { _id: { $in: [lostId, foundId] }, status: 'Open' },
+        { $set: { status: 'Possible match' } }
+      );
+
+      results.push({ lost, found, other: cand, score, reasons });
+
+      if (score >= config.match.strong) {
+        notifyMatch({ lost, found, score, reasons });
+      }
     }
-  }
 
-  return results.sort((x, y) => y.score - x.score);
+    return results.sort((x, y) => y.score - x.score);
+  } catch (err) {
+    console.error('processNewItem error:', err.message);
+    return [];
+  }
 }
 
 module.exports = { scorePair, processNewItem, WEIGHTS };

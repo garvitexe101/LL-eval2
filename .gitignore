@@ -12,7 +12,7 @@ lerna-debug.log*
 serviceAccountKey.json
 *firebase-adminsdk*.json
 
-# SQLite database files and logs
+# Database files, local dumps and logs
 data/
 *.sqlite
 *.sqlite3

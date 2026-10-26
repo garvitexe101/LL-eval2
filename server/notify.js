@@ -1,47 +1,58 @@
-const db = require('./db');
+const { User, Notification } = require('./db');
 const mailer = require('./mailer');
 const config = require('./config');
 
 /** Stores a general in-app notification and emails the user. */
-function notifyUser(userId, { type, title, message, note = null, link = null }) {
-  db.prepare(
-    'INSERT INTO notifications (user_id, type, title, message, note) VALUES (?, ?, ?, ?, ?)'
-  ).run(userId, type, title, message, note);
+async function notifyUser(userId, { type, title, message, note = null, link = null }) {
+  try {
+    await Notification.create({
+      userId,
+      type,
+      title,
+      message,
+      note,
+    });
 
-  const user = db.prepare('SELECT name, email FROM users WHERE id = ?').get(userId);
-  if (!user) return;
+    const user = await User.findById(userId);
+    if (!user) return;
 
-  const body = [`Hi ${user.name},`, '', message];
-  if (note) body.push('', note);
-  if (link) body.push('', link);
-  body.push('', '— LostLink, Chitkara University');
-  mailer.send(user.email, `LostLink: ${title}`, body.join('\n'));
+    const body = [`Hi ${user.name},`, '', message];
+    if (note) body.push('', note);
+    if (link) body.push('', link);
+    body.push('', '— LostLink, Chitkara University');
+    mailer.send(user.email, `LostLink: ${title}`, body.join('\n'));
+  } catch (err) {
+    console.error('notifyUser error:', err.message);
+  }
 }
 
 /**
  * Sends detailed match notifications and emails to both the lost item owner and finder,
  * providing comprehensive report details, match reasons, and mutual contact info.
  */
-function notifyMatch({ lost, found, score, reasons }) {
-  const lostUser = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(lost.user_id);
-  const foundUser = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(found.user_id);
-  if (!lostUser || !foundUser) return;
+async function notifyMatch({ lost, found, score, reasons }) {
+  try {
+    const lostUserId = lost.userId || lost.user_id;
+    const foundUserId = found.userId || found.user_id;
+    const lostUser = await User.findById(lostUserId);
+    const foundUser = await User.findById(foundUserId);
+    if (!lostUser || !foundUser) return;
 
-  const itemUrl = `${config.publicUrl}/item.html?id=${found.id}`;
-  const reasonsText = Array.isArray(reasons) ? reasons.join(' · ') : String(reasons);
+    const foundId = found.id || found._id;
+    const itemUrl = `${config.publicUrl}/item.html?id=${foundId}`;
+    const reasonsText = Array.isArray(reasons) ? reasons.join(' · ') : String(reasons);
 
-  // ==========================================
-  // 1. NOTIFY OWNER OF THE LOST ITEM
-  // ==========================================
-  const lostInAppMsg = `A found report "${found.name}" at ${found.zone} looks like a ${score}% match for your lost "${lost.name}". Finder contact: ${foundUser.name} (${foundUser.email}).`;
-  db.prepare('INSERT INTO notifications (user_id, type, title, message, note) VALUES (?, ?, ?, ?, ?)')
-    .run(
-      lostUser.id,
-      'match',
-      `Match found for "${lost.name}" (${score}%)`,
-      lostInAppMsg,
-      `Contact finder directly at: ${foundUser.email}`
-    );
+    // ==========================================
+    // 1. NOTIFY OWNER OF THE LOST ITEM
+    // ==========================================
+    const lostInAppMsg = `A found report "${found.name}" at ${found.zone} looks like a ${score}% match for your lost "${lost.name}". Finder contact: ${foundUser.name} (${foundUser.email}).`;
+    await Notification.create({
+      userId: lostUser._id,
+      type: 'match',
+      title: `Match found for "${lost.name}" (${score}%)`,
+      message: lostInAppMsg,
+      note: `Contact finder directly at: ${foundUser.email}`,
+    });
 
   const lostEmailText = `Hi ${lostUser.name},
 
@@ -140,14 +151,13 @@ For your safety, always arrange verification and handovers in open public areas 
   // 2. NOTIFY FINDER OF THE FOUND ITEM
   // ==========================================
   const foundInAppMsg = `Possible owner found (${score}%): "${lost.name}" reported lost at ${lost.zone}. Owner: ${lostUser.name} (${lostUser.email}).`;
-  db.prepare('INSERT INTO notifications (user_id, type, title, message, note) VALUES (?, ?, ?, ?, ?)')
-    .run(
-      foundUser.id,
-      'match',
-      `Possible owner for "${found.name}" (${score}%)`,
-      foundInAppMsg,
-      `Contact owner directly at: ${lostUser.email}`
-    );
+  await Notification.create({
+    userId: foundUser._id,
+    type: 'match',
+    title: `Possible owner for "${found.name}" (${score}%)`,
+    message: foundInAppMsg,
+    note: `Contact owner directly at: ${lostUser.email}`,
+  });
 
   const foundEmailText = `Hi ${foundUser.name},
 
@@ -239,6 +249,9 @@ For your safety, always arrange verification and handovers in open public areas 
     foundEmailText,
     foundEmailHtml
   );
+  } catch (err) {
+    console.error('notifyMatch error:', err.message);
+  }
 }
 
 module.exports = { notifyUser, notifyMatch };

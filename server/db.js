@@ -1,94 +1,214 @@
-const fs = require('fs');
-const path = require('path');
-const Database = require('better-sqlite3');
+const mongoose = require('mongoose');
 const config = require('./config');
 
-fs.mkdirSync(path.dirname(config.dbPath), { recursive: true });
-
-const db = new Database(config.dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-
-db.exec(`
-CREATE TABLE IF NOT EXISTS users (
-  id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  name          TEXT NOT NULL,
-  email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
-  role          TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'admin')),
-  firebase_uid  TEXT,
-  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE TABLE IF NOT EXISTS items (
-  id             INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type           TEXT NOT NULL CHECK (type IN ('lost', 'found')),
-  name           TEXT NOT NULL,
-  category       TEXT NOT NULL,
-  colour         TEXT NOT NULL,
-  zone           TEXT NOT NULL,
-  date           TEXT NOT NULL,
-  time           TEXT,
-  description    TEXT NOT NULL,
-  private_detail TEXT,
-  deposit        TEXT,
-  image          TEXT,
-  status         TEXT NOT NULL DEFAULT 'Open' CHECK (status IN ('Open', 'Possible match', 'Returned')),
-  created_at     TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_items_type_status ON items(type, status);
-CREATE INDEX IF NOT EXISTS idx_items_user ON items(user_id);
-
-CREATE TABLE IF NOT EXISTS claims (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  item_id    INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  answers    TEXT NOT NULL,
-  status     TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-  decided_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  decided_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_claims_item ON claims(item_id);
-CREATE INDEX IF NOT EXISTS idx_claims_user ON claims(user_id);
-
-CREATE TABLE IF NOT EXISTS matches (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  lost_id    INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
-  found_id   INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
-  score      INTEGER NOT NULL,
-  reasons    TEXT NOT NULL DEFAULT '[]',
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (lost_id, found_id)
-);
-
-CREATE TABLE IF NOT EXISTS notifications (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type       TEXT NOT NULL,
-  title      TEXT NOT NULL,
-  message    TEXT NOT NULL,
-  note       TEXT,
-  is_read    INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, created_at);
-`);
-
-// Safe column addition for existing databases
-try {
-  const cols = db.pragma('table_info(users)').map((c) => c.name);
-  if (!cols.includes('firebase_uid')) {
-    db.exec('ALTER TABLE users ADD COLUMN firebase_uid TEXT');
+const toIso = (d) => {
+  if (!d) return null;
+  if (d instanceof Date) return d.toISOString();
+  try {
+    return new Date(d).toISOString();
+  } catch {
+    return String(d);
   }
-} catch (e) {
-  // Ignore migration error if already present
+};
+
+/* ----------------- User Schema ----------------- */
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+    role: { type: String, enum: ['student', 'admin'], default: 'student' },
+    firebaseUid: { type: String, default: null, index: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+userSchema.virtual('password_hash').get(function () {
+  return this.passwordHash;
+}).set(function (v) {
+  this.passwordHash = v;
+});
+
+userSchema.virtual('firebase_uid').get(function () {
+  return this.firebaseUid;
+}).set(function (v) {
+  this.firebaseUid = v;
+});
+
+/* ----------------- Item Schema ----------------- */
+const itemSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    type: { type: String, enum: ['lost', 'found'], required: true, index: true },
+    name: { type: String, required: true, trim: true },
+    category: { type: String, required: true, trim: true },
+    colour: { type: String, required: true, trim: true },
+    zone: { type: String, required: true, trim: true },
+    date: { type: String, required: true },
+    time: { type: String, default: null },
+    description: { type: String, required: true },
+    privateDetail: { type: String, default: null },
+    deposit: { type: String, default: null },
+    image: { type: String, default: null },
+    status: { type: String, enum: ['Open', 'Possible match', 'Returned'], default: 'Open', index: true },
+    createdAt: { type: Date, default: Date.now },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+itemSchema.virtual('user_id').get(function () {
+  return this.userId ? this.userId.toString() : null;
+}).set(function (v) {
+  this.userId = v;
+});
+
+itemSchema.virtual('private_detail').get(function () {
+  return this.privateDetail;
+}).set(function (v) {
+  this.privateDetail = v;
+});
+
+itemSchema.virtual('has_image').get(function () {
+  return Boolean(this.image);
+});
+
+/* ----------------- Claim Schema ----------------- */
+const claimSchema = new mongoose.Schema(
+  {
+    itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true, index: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    answers: { type: mongoose.Schema.Types.Mixed, required: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending', index: true },
+    decidedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    decidedAt: { type: Date, default: null },
+    createdAt: { type: Date, default: Date.now },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+claimSchema.virtual('item_id').get(function () {
+  return this.itemId ? this.itemId.toString() : null;
+}).set(function (v) {
+  this.itemId = v;
+});
+
+claimSchema.virtual('user_id').get(function () {
+  return this.userId ? this.userId.toString() : null;
+}).set(function (v) {
+  this.userId = v;
+});
+
+claimSchema.virtual('decided_by').get(function () {
+  return this.decidedBy ? this.decidedBy.toString() : null;
+}).set(function (v) {
+  this.decidedBy = v;
+});
+
+claimSchema.virtual('decided_at').get(function () {
+  return this.decidedAt;
+}).set(function (v) {
+  this.decidedAt = v;
+});
+
+/* ----------------- Match Schema ----------------- */
+const matchSchema = new mongoose.Schema(
+  {
+    lostId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true, index: true },
+    foundId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true, index: true },
+    score: { type: Number, required: true },
+    reasons: { type: mongoose.Schema.Types.Mixed, default: [] },
+    createdAt: { type: Date, default: Date.now },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+matchSchema.index({ lostId: 1, foundId: 1 }, { unique: true });
+
+matchSchema.virtual('lost_id').get(function () {
+  return this.lostId ? this.lostId.toString() : null;
+}).set(function (v) {
+  this.lostId = v;
+});
+
+matchSchema.virtual('found_id').get(function () {
+  return this.foundId ? this.foundId.toString() : null;
+}).set(function (v) {
+  this.foundId = v;
+});
+
+/* ----------------- Notification Schema ----------------- */
+const notificationSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    type: { type: String, required: true },
+    title: { type: String, required: true },
+    message: { type: String, required: true },
+    note: { type: String, default: null },
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+
+notificationSchema.virtual('user_id').get(function () {
+  return this.userId ? this.userId.toString() : null;
+}).set(function (v) {
+  this.userId = v;
+});
+
+notificationSchema.virtual('is_read').get(function () {
+  return this.isRead ? 1 : 0;
+}).set(function (v) {
+  this.isRead = Boolean(v);
+});
+
+/* ----------------- Models ----------------- */
+const User = mongoose.model('User', userSchema);
+const Item = mongoose.model('Item', itemSchema);
+const Claim = mongoose.model('Claim', claimSchema);
+const Match = mongoose.model('Match', matchSchema);
+const Notification = mongoose.model('Notification', notificationSchema);
+
+async function connectDB() {
+  try {
+    await mongoose.connect(config.mongodbUri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    console.log(`Connected to MongoDB at ${config.mongodbUri}`);
+  } catch (err) {
+    console.error(`MongoDB connection error: ${err.message}`);
+    console.error('Make sure MongoDB is running locally or provide a valid MONGODB_URI in .env');
+  }
 }
 
-db.exec('CREATE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid);');
+async function disconnectDB() {
+  await mongoose.disconnect();
+}
 
-// SQLite stores datetime('now') as "YYYY-MM-DD HH:MM:SS" in UTC.
-db.toIso = (s) => (s ? `${String(s).replace(' ', 'T')}Z` : null);
-
-module.exports = db;
+module.exports = {
+  mongoose,
+  connectDB,
+  disconnectDB,
+  toIso,
+  User,
+  Item,
+  Claim,
+  Match,
+  Notification,
+};

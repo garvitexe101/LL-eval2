@@ -207,7 +207,7 @@ if (googleBtn) {
   });
 }
 
-// Form submit (Firebase Email/Password with fallback to local SQLite auth)
+// Form submit (Firebase Email/Password with fallback to database auth)
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -270,7 +270,7 @@ form.addEventListener('submit', async (e) => {
         }
       }
 
-      // Sync user session with SQLite database
+      // Sync user session with MongoDB database
       const r = await api('/auth/firebase-login', {
         method: 'POST',
         body: { idToken, name: displayName },
@@ -283,7 +283,7 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Fallback: Local SQLite authentication if Firebase keys are not in .env yet
+    // Fallback: Local database authentication if Firebase keys are not in .env yet
     try {
       await api('/auth/login', { method: 'POST', body: { email, password } });
     } catch (err) {

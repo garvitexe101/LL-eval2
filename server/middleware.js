@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const db = require('./db');
+const { User } = require('./db');
 const config = require('./config');
 const { HttpError } = require('./http');
 
@@ -7,7 +7,8 @@ const COOKIE = 'll_token';
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function issueToken(res, user) {
-  const token = jwt.sign({ sub: user.id }, config.jwtSecret, { expiresIn: '7d' });
+  const userId = user._id ? user._id.toString() : user.id;
+  const token = jwt.sign({ sub: userId }, config.jwtSecret, { expiresIn: '7d' });
   res.cookie(COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
@@ -34,8 +35,7 @@ async function loadUser(req, res, next) {
   if (token) {
     try {
       const payload = jwt.verify(token, config.jwtSecret);
-      req.user =
-        db.prepare('SELECT id, name, email, role FROM users WHERE id = ?').get(payload.sub) || null;
+      req.user = await User.findById(payload.sub);
       return next();
     } catch (err) {
       // Local JWT check failed, attempt Firebase token verification if present
@@ -43,9 +43,12 @@ async function loadUser(req, res, next) {
         const { verifyFirebaseIdToken } = require('./firebase');
         const fbUser = await verifyFirebaseIdToken(token);
         if (fbUser && (fbUser.email || fbUser.uid)) {
-          req.user =
-            db.prepare('SELECT id, name, email, role FROM users WHERE firebase_uid = ? OR email = ?')
-              .get(fbUser.uid, (fbUser.email || '').toLowerCase()) || null;
+          req.user = await User.findOne({
+            $or: [
+              { firebaseUid: fbUser.uid },
+              { email: (fbUser.email || '').toLowerCase() },
+            ],
+          });
         }
       } catch (fbErr) {
         req.user = null;
