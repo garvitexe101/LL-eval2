@@ -112,10 +112,9 @@ function validateEmail() {
   }
 
   if (firebaseConfig.restrictEmailDomain) {
-    const validUniversityEmail =
-      email.endsWith('@chitkara.edu') || email.endsWith('@chitkara.edu.in');
+    const validUniversityEmail = email.endsWith('@chitkara.edu.in');
     if (!validUniversityEmail) {
-      return showError(emailInput, emailError, 'Use your Chitkara University email.');
+      return showError(emailInput, emailError, 'Use your Chitkara University email (@chitkara.edu.in).');
     }
   }
 

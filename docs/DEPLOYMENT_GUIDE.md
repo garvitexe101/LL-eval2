@@ -39,7 +39,7 @@ Step-by-step guide to deploying your backend, testing APIs in Postman/Thunder Cl
 5. Click **Advanced -> Add Environment Variable** and add:
    - `MONGODB_URI` = *your MongoDB Atlas connection string from Step 1*
    - `JWT_SECRET` = *any 32-character random string*
-   - `ADMIN_EMAIL` = `admin@chitkara.edu`
+   - `ADMIN_EMAIL` = `admin@chitkara.edu.in`
    - `ADMIN_PASSWORD` = `admin123`
    - `SEED_DEMO_DATA` = `true`
    - `COOKIE_SECURE` = `true`

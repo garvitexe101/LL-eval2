@@ -58,7 +58,7 @@ async function send(to, subject, text, html = null) {
       ? config.smtp.from
       : config.smtp.user
       ? `LostLink <${config.smtp.user}>`
-      : 'LostLink <no-reply@chitkara.edu>';
+      : 'LostLink <no-reply@chitkara.edu.in>';
 
   if (!transporter) {
     console.log(`[email:console] to=${to} subject="${subject}"\n${text}\n`);

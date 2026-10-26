@@ -119,7 +119,7 @@ async function processNewItem(item) {
       await Match.findOneAndUpdate(
         { lostId, foundId },
         { score, reasons },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
 
       await Item.updateMany(

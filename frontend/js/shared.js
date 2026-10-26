@@ -85,7 +85,7 @@ function bindCards() {
 
 /* Administrator sign-in modal (checked by the server; the role is never decided in the browser). */
 function openAdminLogin() {
-  $('#appModal').innerHTML = `<div class="modal show"><div class="modal-card auth-card"><button class="close" id="closeLogin" type="button">×</button><p class="eyebrow"><span></span> LOSTLINK ADMIN</p><h2>Administrator access</h2><p>Sign in with an administrator account.</p><form id="workingLogin"><label>Email<input id="loginEmail" type="email" required placeholder="admin@chitkara.edu" autocomplete="username"><small></small></label><label>Password<input id="loginPassword" type="password" required placeholder="Enter your password" autocomplete="current-password"><small></small></label><button class="btn btn-dark">Admin sign in <b>→</b></button></form></div></div>`;
+  $('#appModal').innerHTML = `<div class="modal show"><div class="modal-card auth-card"><button class="close" id="closeLogin" type="button">×</button><p class="eyebrow"><span></span> LOSTLINK ADMIN</p><h2>Administrator access</h2><p>Sign in with an administrator account.</p><form id="workingLogin"><label>Email<input id="loginEmail" type="email" required placeholder="admin@chitkara.edu.in" autocomplete="username"><small></small></label><label>Password<input id="loginPassword" type="password" required placeholder="Enter your password" autocomplete="current-password"><small></small></label><button class="btn btn-dark">Admin sign in <b>→</b></button></form></div></div>`;
   $('#closeLogin').onclick = () => $('#appModal').innerHTML = '';
   $('#workingLogin').onsubmit = async e => {
     e.preventDefault();

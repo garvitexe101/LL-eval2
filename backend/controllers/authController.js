@@ -21,7 +21,7 @@ function cleanEmail(value) {
   if (config.restrictEmailDomain) {
     const domain = email.split('@')[1];
     if (!config.allowedEmailDomains.includes(domain)) {
-      throw new HttpError(400, 'Use your Chitkara University email.', 'invalid_email');
+      throw new HttpError(400, 'Use your Chitkara University email (@chitkara.edu.in).', 'invalid_email');
     }
   }
   return email;

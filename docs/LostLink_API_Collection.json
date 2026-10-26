@@ -37,7 +37,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@chitkara.edu\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"email\": \"admin@chitkara.edu.in\",\n  \"password\": \"admin123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -59,7 +59,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Rohan Sharma\",\n  \"email\": \"rohan.student@chitkara.edu\",\n  \"password\": \"studentPassword123\"\n}"
+              "raw": "{\n  \"name\": \"Rohan Sharma\",\n  \"email\": \"rohan.student@chitkara.edu.in\",\n  \"password\": \"studentPassword123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",

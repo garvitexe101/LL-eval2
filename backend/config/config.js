@@ -30,7 +30,7 @@ module.exports = {
   jwtSecretIsRandom: !env.JWT_SECRET,
   secureCookies: bool(env.COOKIE_SECURE, false),
   admin: {
-    email: (env.ADMIN_EMAIL || 'admin@chitkara.edu').trim().toLowerCase(),
+    email: (env.ADMIN_EMAIL || 'admin@chitkara.edu.in').trim().toLowerCase(),
     password: env.ADMIN_PASSWORD || 'admin123',
     name: env.ADMIN_NAME || 'Campus Admin',
   },
@@ -54,7 +54,7 @@ module.exports = {
     pass: (env.SMTP_PASS || '').trim(),
     from: (env.MAIL_FROM || '').trim() || ((env.SMTP_USER || '').trim() ? `LostLink <${(env.SMTP_USER || '').trim()}>` : 'LostLink <no-reply@lostlink.local>'),
   },
-  allowedEmailDomains: ['chitkara.edu', 'chitkara.edu.in'],
+  allowedEmailDomains: ['chitkara.edu.in'],
   restrictEmailDomain: bool(env.RESTRICT_EMAIL_DOMAIN, false),
   firebase: {
     apiKey: env.FIREBASE_API_KEY || '',

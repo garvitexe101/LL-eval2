@@ -82,8 +82,8 @@ Open <http://localhost:3000> in your browser.
 
 | Default Account | Email | Password | Role |
 | --- | --- | --- | --- |
-| **Campus Admin** | `admin@chitkara.edu` | `admin123` | Administrator (Reviews claims, manages items) |
-| **Student** | Any `@chitkara.edu` email | Password of your choice | Student (Reports lost/found items, claims) |
+| **Campus Admin** | `admin@chitkara.edu.in` | `admin123` | Administrator (Reviews claims, manages items) |
+| **Student** | Any `@chitkara.edu.in` email | Password of your choice | Student (Reports lost/found items, claims) |
 
 ---
 
