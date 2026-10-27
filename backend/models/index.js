@@ -3,6 +3,7 @@ const Item = require('./Item');
 const Claim = require('./Claim');
 const Match = require('./Match');
 const Notification = require('./Notification');
+const { toIso } = require('../config/db');
 
 module.exports = {
   User,
@@ -10,4 +11,5 @@ module.exports = {
   Claim,
   Match,
   Notification,
+  toIso,
 };
