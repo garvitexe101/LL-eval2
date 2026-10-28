@@ -9,6 +9,7 @@ const { ensureAdmin, seedDemoData } = require('./seed');
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
 
 // Security & Cross-Origin (CORS) headers for deployed frontend integration (Requirement 3 & 5)
 app.use((req, res, next) => {
