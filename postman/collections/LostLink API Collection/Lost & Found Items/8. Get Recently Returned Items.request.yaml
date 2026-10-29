@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns list of successfully recovered and returned campus items.
+url: "{{baseUrl}}/api/items/returned"
+method: GET
+order: 8000

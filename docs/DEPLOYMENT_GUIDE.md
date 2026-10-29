@@ -26,7 +26,7 @@ Step-by-step guide to deploying your backend, testing APIs in Postman/Thunder Cl
 
 1. Go to [render.com](https://render.com) and sign in with your GitHub account (`garvitexe101`).
 2. Click **New + -> Web Service**.
-3. Select your repository: **`LL-eval2`** (or connect your GitHub repository).
+3. Select the new sanitized LostLink repository you create on GitHub.
 4. Fill in the settings:
    - **Name:** `lostlink-backend`
    - **Region:** Singapore / Oregon (or closest)
@@ -40,8 +40,8 @@ Step-by-step guide to deploying your backend, testing APIs in Postman/Thunder Cl
    - `MONGODB_URI` = *your MongoDB Atlas connection string from Step 1*
    - `JWT_SECRET` = *any 32-character random string*
    - `ADMIN_EMAIL` = `admin@chitkara.edu.in`
-   - `ADMIN_PASSWORD` = `admin123`
-   - `SEED_DEMO_DATA` = `true`
+   - ADMIN_PASSWORD = a unique password stored only in Render environment settings
+   - SEED_DEMO_DATA = false for production
    - `COOKIE_SECURE` = `true`
    - `FIREBASE_API_KEY` = *your Firebase API key*
    - `FIREBASE_PROJECT_ID` = `lostlink-2d44a`
@@ -62,7 +62,7 @@ Step-by-step guide to deploying your backend, testing APIs in Postman/Thunder Cl
 
 ## 3. Frontend Integration (Requirement 5)
 
-Once deployed, open [`frontend/js/config.js`](../frontend/js/config.js) and set your live URL:
+Before publishing, confirm .env is not committed and the new GitHub repository has fresh history without the old .env commit. Then configure frontend/js/config.js with the backend URL.
 ```javascript
 window.API_BASE_URL = 'https://lostlink-backend.onrender.com';
 ```

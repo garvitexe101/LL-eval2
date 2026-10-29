@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns scored rule-based matches (Category 25, Zone 25, Colour 15, Date 15, Keywords 20).
+url: "{{baseUrl}}/api/items/{{itemId}}/matches"
+method: GET
+order: 7000

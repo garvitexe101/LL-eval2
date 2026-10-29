@@ -15,8 +15,8 @@ How to run LostLink (Express + MongoDB backend and the HTML/CSS/JS frontend) on 
 ## 2. Get the code
 
 ```bash
-git clone https://github.com/garvitexe101/LL-eval2.git
-cd LL-eval2
+git clone https://github.com/YOUR_USERNAME/YOUR_NEW_REPOSITORY.git
+cd YOUR_NEW_REPOSITORY
 ```
 
 ## 3. Install dependencies
@@ -25,7 +25,7 @@ cd LL-eval2
 npm install
 ```
 
-## 4. Configure (optional)
+## 4. Configure
 
 ```bash
 cp .env.example .env      # Windows: copy .env.example .env
@@ -38,7 +38,7 @@ Then edit `.env`. The settings you are most likely to change:
 | `PORT` | Server port | `3000` |
 | `MONGODB_URI` | MongoDB connection string (local or MongoDB Atlas) | `mongodb://127.0.0.1:27017/lostlink` |
 | `JWT_SECRET` | Signs login cookies. Set any long random string so users stay signed in after restarts | random each start |
-| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Admin account created on first start | `admin@chitkara.edu.in` / `admin123` |
+| ADMIN_EMAIL / ADMIN_PASSWORD | Admin email and a unique password; password is created or rotated from this setting | admin@chitkara.edu.in / set privately in .env |
 | `SEED_DEMO_DATA` | Add demo reports when collection is empty | `true` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Real email delivery | empty (emails print to the console) |
 | `MATCH_MIN_SCORE` / `MATCH_STRONG_SCORE` | Match thresholds | `50` / `70` |
@@ -99,5 +99,5 @@ Use two browser sessions (a normal window and a private window) so you can act a
 3. **Student B** (window 2): sign in with a different email and **Report lost item** with similar details (same category and location, a similar date).
 4. B's profile now shows a **Possible match**. A strong match (70+) also sends emails; check the terminal if SMTP is not set up.
 5. B opens the found item from *Browse* or the *Campus map* and submits the ownership claim form.
-6. **Admin**: open <http://localhost:3000/admin.html>, sign in with `admin@chitkara.edu.in` / `admin123`, then review the claim and **Approve** or **Reject**.
+6. **Admin**: open <http://localhost:3000/admin.html>, sign in with the configured admin email and private password, then review the claim and **Approve** or **Reject**.
 7. B's profile shows the decision (and an email is sent or printed). An approved item moves to *Recently returned* on the home page.

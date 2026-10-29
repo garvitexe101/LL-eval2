@@ -1,0 +1,13 @@
+$kind: http-request
+description: Returns public list of active (unreturned) lost and found reports.
+url: "{{baseUrl}}/api/items"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      const res = pm.response.json();
+      if (res.items && res.items.length > 0) {
+          pm.collectionVariables.set('itemId', res.items[0].id);
+      }
+    language: text/javascript
+order: 1000

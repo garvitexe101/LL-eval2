@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns current logged in user details or null.
+url: "{{baseUrl}}/api/auth/me"
+method: GET
+order: 3000

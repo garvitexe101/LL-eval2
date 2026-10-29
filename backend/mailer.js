@@ -6,10 +6,10 @@ const useSmtp = Boolean(config.smtp.host || config.smtp.user);
 function createTransporter() {
   if (!useSmtp) return null;
 
-  const host = (config.smtp.host || '').toLowerCase();
-  const user = (config.smtp.user || '').toLowerCase();
-  const rawPass = config.smtp.pass || '';
-  const cleanPass = rawPass.includes(' ') && rawPass.length === 19 ? rawPass.replace(/\s+/g, '') : rawPass;
+  const host = (config.smtp.host || '').toLowerCase().trim();
+  const user = (config.smtp.user || '').toLowerCase().trim();
+  const rawPass = (config.smtp.pass || '').trim();
+  const cleanPass = rawPass.replace(/\s+/g, '');
   const isGmail = host.includes('gmail') || user.endsWith('@gmail.com');
 
   if (isGmail) {

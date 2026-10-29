@@ -31,7 +31,7 @@ module.exports = {
   secureCookies: bool(env.COOKIE_SECURE, false),
   admin: {
     email: (env.ADMIN_EMAIL || 'admin@chitkara.edu.in').trim().toLowerCase(),
-    password: env.ADMIN_PASSWORD || 'admin123',
+    password: env.ADMIN_PASSWORD || '',
     name: env.ADMIN_NAME || 'Campus Admin',
   },
   seedDemoData: bool(env.SEED_DEMO_DATA, true),

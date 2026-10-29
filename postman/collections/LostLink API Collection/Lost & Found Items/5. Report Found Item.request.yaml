@@ -1,0 +1,30 @@
+$kind: http-request
+description: Submits a found item report. Automatically checks for opposite matches.
+url: "{{baseUrl}}/api/items"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "type": "found",
+      "name": "Blue HP Backpack",
+      "category": "Bags",
+      "colour": "Blue",
+      "zone": "Turing Block",
+      "date": "2026-10-26",
+      "time": "14:30",
+      "description": "Found blue HP laptop backpack with red bottle in side pocket.",
+      "deposit": "Security Office",
+      "privateDetail": "Student roll number 221099xxxx"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const res = pm.response.json();
+      if (res.item && res.item.id) {
+          pm.collectionVariables.set('itemId', res.item.id);
+      }
+    language: text/javascript
+order: 5000

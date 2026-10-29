@@ -1,0 +1,8 @@
+# Use this workspace to collaborate
+workspace:
+  id: 06602548-b86f-4db7-be1d-5f5fd4f8a363
+
+localResources:
+  collections:
+    - ../LostLink_API_Collection.json
+    - ../docs/LostLink_API_Collection.json

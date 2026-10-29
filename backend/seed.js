@@ -7,6 +7,15 @@ async function ensureAdmin() {
   const { email, password, name } = config.admin;
   try {
     const existing = await User.findOne({ email });
+    if (!password) {
+      console.warn('ADMIN_PASSWORD is not set; set it in the environment before creating or rotating the admin password.');
+      if (existing && existing.role !== 'admin') {
+        existing.role = 'admin';
+        await existing.save();
+      }
+      return;
+    }
+
     if (!existing) {
       await User.create({
         name,
@@ -14,10 +23,21 @@ async function ensureAdmin() {
         passwordHash: bcrypt.hashSync(password, 10),
         role: 'admin',
       });
-      console.log(`Created admin account: ${email}`);
-    } else if (existing.role !== 'admin') {
-      existing.role = 'admin';
-      await existing.save();
+      console.log('Created admin account: ' + email);
+    } else {
+      let changed = false;
+      if (existing.role !== 'admin') {
+        existing.role = 'admin';
+        changed = true;
+      }
+      const passwordMatches = existing.passwordHash &&
+        existing.passwordHash !== 'FIREBASE_AUTH' &&
+        bcrypt.compareSync(password, existing.passwordHash);
+      if (!passwordMatches) {
+        existing.passwordHash = bcrypt.hashSync(password, 10);
+        changed = true;
+      }
+      if (changed) await existing.save();
     }
   } catch (err) {
     console.error(`ensureAdmin error: ${err.message}`);

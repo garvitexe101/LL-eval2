@@ -1,0 +1,24 @@
+$kind: http-request
+description: Submits answers to verification questions to claim a found item.
+url: "{{baseUrl}}/api/items/{{itemId}}/claims"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "colour": "Navy Blue",
+      "location": "Turing Block",
+      "privateFeature": "Red water bottle and university keychain inside",
+      "descriptionWord": "laptop backpack"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const res = pm.response.json();
+      if (res.claim && res.claim.id) {
+          pm.collectionVariables.set('claimId', res.claim.id);
+      }
+    language: text/javascript
+order: 1000

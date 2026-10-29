@@ -1,0 +1,14 @@
+$kind: http-request
+description: Logs in the campus administrator account and issues an HTTP-only JWT session cookie.
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "admin@chitkara.edu.in",
+      "password": "admin123"
+    }
+order: 1000

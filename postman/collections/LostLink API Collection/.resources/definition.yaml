@@ -1,0 +1,6 @@
+$kind: collection
+description: Comprehensive API testing collection for LostLink (Evaluation 2). Compatible with Postman and VS Code Thunder Client.
+variables:
+  baseUrl: http://localhost:3000
+  itemId: sample_item_id
+  claimId: sample_claim_id

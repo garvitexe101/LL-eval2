@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns full details for an item (private details visible only to owner/admin).
+url: "{{baseUrl}}/api/items/{{itemId}}"
+method: GET
+order: 6000

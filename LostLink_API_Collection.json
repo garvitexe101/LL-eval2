@@ -11,6 +11,11 @@
       "type": "string"
     },
     {
+      "key": "adminPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "itemId",
       "value": "sample_item_id",
       "type": "string"
@@ -37,7 +42,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@chitkara.edu.in\",\n  \"password\": \"admin123\"\n}"
+              "raw": "{\n  \"email\": \"admin@chitkara.edu.in\",\n  \"password\": \"{{adminPassword}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",

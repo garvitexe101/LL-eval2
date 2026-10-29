@@ -67,26 +67,13 @@ LostLink/
 
 Requires Node.js 18 or newer and MongoDB (local or MongoDB Atlas).
 
-```bash
-# 1. Install dependencies
-npm install
+1. Install dependencies with npm install.
+2. Copy .env.example to .env.
+3. Set a unique ADMIN_PASSWORD and JWT_SECRET in .env before starting the server.
+4. Keep .env private; it is excluded by .gitignore. For deployment, set secrets in your hosting provider instead.
+5. Start the application with npm start.
 
-# 2. Configure environment (optional, defaults work locally)
-cp .env.example .env
-
-# 3. Start the application
-npm start
-```
-
-Open <http://localhost:3000> in your browser.
-
-| Default Account | Email | Password | Role |
-| --- | --- | --- | --- |
-| **Campus Admin** | `admin@chitkara.edu.in` | `admin123` | Administrator (Reviews claims, manages items) |
-| **Student** | Any `@chitkara.edu.in` email | Password of your choice | Student (Reports lost/found items, claims) |
-
----
-
+Open http://localhost:3000 in your browser. The administrator email is configured by ADMIN_EMAIL; the password is the private value you set in ADMIN_PASSWORD. Students register with their own passwords.
 ## Evaluation 2 Requirements Checklist
 
 | Requirement | Implementation Detail | Status |
@@ -96,7 +83,7 @@ Open <http://localhost:3000> in your browser.
 | **3. Backend Deployment** | Ready for 1-click deployment on Render.com ([Deployment Guide](docs/DEPLOYMENT_GUIDE.md)) | **Complete** |
 | **4. API Testing** | Exported `LostLink_API_Collection.json` for Thunder Client & Postman | **Complete** |
 | **5. Frontend Integration** | Configurable `window.API_BASE_URL` in `frontend/js/config.js` pointing to deployed backend | **Complete** |
-| **6. GitHub Repository** | Maintained on repository `garvitexe101/LL-eval2` | **Complete** |
+| **6. GitHub Repository** | Publish only from a fresh sanitized repository without .env or old history | **Ready** |
 | **7. Project Structure** | Both `frontend/` and `backend/` directories present in the same repository | **Complete** |
 
 ---

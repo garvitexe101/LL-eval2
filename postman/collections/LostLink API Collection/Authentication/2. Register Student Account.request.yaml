@@ -1,0 +1,15 @@
+$kind: http-request
+description: Registers a new student user and establishes a session cookie.
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Rohan Sharma",
+      "email": "rohan.student@chitkara.edu.in",
+      "password": "studentPassword123"
+    }
+order: 2000

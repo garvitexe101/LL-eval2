@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns status of all claims submitted by the logged-in user.
+url: "{{baseUrl}}/api/claims/mine"
+method: GET
+order: 2000

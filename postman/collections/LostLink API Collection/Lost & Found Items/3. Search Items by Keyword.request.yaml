@@ -1,0 +1,7 @@
+$kind: http-request
+description: Performs case-insensitive regex search on name, description, zone, and colour.
+url: "{{baseUrl}}/api/items?q=wallet"
+method: GET
+queryParams:
+  q: wallet
+order: 3000

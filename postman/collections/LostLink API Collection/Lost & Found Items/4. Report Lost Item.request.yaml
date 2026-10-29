@@ -1,0 +1,29 @@
+$kind: http-request
+description: Submits a lost item report. Automatically triggers matching algorithm.
+url: "{{baseUrl}}/api/items"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "type": "lost",
+      "name": "Navy Blue Laptop Backpack",
+      "category": "Bags",
+      "colour": "Blue",
+      "zone": "Turing Block",
+      "date": "2026-10-26",
+      "time": "14:00",
+      "description": "HP laptop backpack lost near Turing Block ground floor stairs.",
+      "privateDetail": "Contains university ID card and red water bottle inside"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const res = pm.response.json();
+      if (res.item && res.item.id) {
+          pm.collectionVariables.set('itemId', res.item.id);
+      }
+    language: text/javascript
+order: 4000

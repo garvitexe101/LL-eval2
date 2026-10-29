@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns allowed campus zones, categories, colours, and deposits.
+url: "{{baseUrl}}/api/meta"
+method: GET
+order: 2000

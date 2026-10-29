@@ -1,0 +1,13 @@
+$kind: http-request
+description: Approves a claim, flags item as Returned, rejects conflicting claims, and triggers emails.
+url: "{{baseUrl}}/api/admin/claims/{{claimId}}/decision"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "decision": "approve"
+    }
+order: 3000

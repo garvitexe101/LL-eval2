@@ -1,0 +1,8 @@
+$kind: http-request
+description: Filters items by category, zone, or keyword query.
+url: "{{baseUrl}}/api/items?category=Bags&zone=Square One"
+method: GET
+queryParams:
+  category: Bags
+  zone: Square One
+order: 2000

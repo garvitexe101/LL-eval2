@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns active reports, returned items, possible matches, and pending claims count.
+url: "{{baseUrl}}/api/admin/overview"
+method: GET
+order: 1000

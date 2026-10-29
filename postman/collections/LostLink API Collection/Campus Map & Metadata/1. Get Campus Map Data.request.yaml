@@ -1,0 +1,5 @@
+$kind: http-request
+description: Returns zone coordinates, lost/found counts, and recent reports for the Leaflet campus map.
+url: "{{baseUrl}}/api/map"
+method: GET
+order: 1000

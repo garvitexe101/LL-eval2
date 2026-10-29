@@ -1,0 +1,5 @@
+$kind: http-request
+description: Lists all items with owner emails and full administration data.
+url: "{{baseUrl}}/api/admin/items"
+method: GET
+order: 4000

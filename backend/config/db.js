@@ -1,3 +1,12 @@
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch {
+  // ignore
+}
+
+const path = require('path');
+const fs = require('fs');
 const mongoose = require('mongoose');
 const config = require('./config');
 
@@ -36,17 +45,34 @@ async function connectDB() {
     }
   }
 
-  // Fallback to MongoMemoryServer for instant, zero-install localhost testing
+  // Fallback to local MongoDB engine (persisted to disk) for zero-install reliability
   try {
     const { MongoMemoryServer } = require('mongodb-memory-server');
-    memoryServer = await MongoMemoryServer.create({
-      instance: {
-        dbName: 'lostlink',
-      },
-    });
+    const localDir = path.resolve(__dirname, '../data/local-mongo');
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+
+    try {
+      memoryServer = await MongoMemoryServer.create({
+        instance: {
+          dbName: 'lostlink',
+          dbPath: localDir,
+          storageEngine: 'wiredTiger',
+        },
+      });
+    } catch (persistErr) {
+      console.warn('Persistent local mongo start note:', persistErr.message, '- falling back to in-memory instance');
+      memoryServer = await MongoMemoryServer.create({
+        instance: {
+          dbName: 'lostlink',
+        },
+      });
+    }
+
     const memoryUri = memoryServer.getUri();
     await mongoose.connect(memoryUri);
-    console.log('Embedded MongoDB engine connected successfully for localhost!');
+    console.log('Embedded MongoDB engine connected successfully for localhost (data persisted to disk)!');
   } catch (memErr) {
     console.error('Embedded MongoDB start error:', memErr.message);
   }

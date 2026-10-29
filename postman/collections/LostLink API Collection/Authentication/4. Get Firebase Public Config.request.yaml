@@ -1,0 +1,5 @@
+$kind: http-request
+description: Exposes public Firebase config (API key, project ID) to the frontend client.
+url: "{{baseUrl}}/api/auth/firebase-config"
+method: GET
+order: 4000
